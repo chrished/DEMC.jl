@@ -9,16 +9,15 @@
 
 
 This repository contains
-1. implementation of the "DE-MCMC" algorithm proposed by Ter Braak (2006).
-2. parallelized computation of "DE-MCMC" algorithm (parallel over the different chains)
-3. convergence check for MCMC method R̂ statistic as in Gelman et al. (2014).
-4. convenience function to display trace of obj function value in simulation, convergence check and acceptance ratios
-5. convenience function to calculate mean and covariance of simulated chains
+* implementation of the "DE-MCMC" algorithm proposed by Ter Braak (2006).
+* parallelized computation of "DE-MCMC" algorithm (parallel over the different chains)
+* convergence check: R̂ statistic as in Gelman et al. (2014).
+* convenience function to display trace of obj function value in simulation, convergence check and acceptance ratios
+* convenience function to calculate mean and covariance of simulated chains
 
-## Dependencies
-* ParallelDataTransfer.jl for (2.)
-* Plots.jl and GR.jl for (4.), they can both be disabled if one only wants to use the serial implementation and no figures. GR can be replaced by any other backend.
 
+## Sample Usage
+to be updated
 ## References
 
 Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2014). Bayesian data analysis (Vol. 2). Boca Raton, FL: CRC press.
