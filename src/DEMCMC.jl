@@ -157,7 +157,7 @@ module DEMCMC
         # so each chain picks different random numbers
         @everywhere srand(myid())
         # initialize arrays
-        if typeof(demc_guess) == MC)
+        if typeof(demc_guess) == MC
             global Xcurrent = copy(demc_guess.Xcurrent)
             global log_objcurrent = copy(demc_guess.log_objcurrent)
             Npop, Npar = size(Xcurrent)

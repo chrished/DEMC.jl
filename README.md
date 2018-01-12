@@ -1,4 +1,5 @@
-# DE-MCMC
+# DEMCMC - Differential Evolution Markov Chain Monte Carlo simulation
+
 
 [![Build Status](https://travis-ci.org/chrished/DEMCMC.jl.svg?branch=master)](https://travis-ci.org/chrished/DE-MCMC.jl)
 
@@ -16,9 +17,7 @@ This repository contains
 
 ## Dependencies
 * ParallelDataTransfer.jl for (2.)
-* Plots.jl and GR.jl for (4.)
-* they can both be disabled if one only wants to use the serial implementation and no figures
-* GR can be replaced by any other backend.
+* Plots.jl and GR.jl for (4.), they can both be disabled if one only wants to use the serial implementation and no figures. GR can be replaced by any other backend.
 
 ## References
 
