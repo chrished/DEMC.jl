@@ -1,5 +1,5 @@
 module DEMCMC
-    export demc_sample, demc_sample_par,  Rhat_gelman, convergence_check, mean_cov_chain
+    export demc_sample, demc_sample_par,  Rhat_gelman, convergence_check, mean_cov_chain, save_res
 
     struct MC
         chain::Array{Float64} # parameter population for all generations
@@ -16,6 +16,7 @@ module DEMCMC
 
     using ParallelDataTransfer
     using Plots
+
     gr()
     plot(ones(3))
     """
@@ -300,4 +301,10 @@ module DEMCMC
         return b, cov
     end
 
+    function save_res(b, Σb, Rhat, accept_ratio, path)
+        writecsv(string(path, "_b.csv"), b)
+        writecsv(string(path, "_Sigmab.csv"), Σb)
+        writecsv(string(path, "_Rhat.csv"), Rhat)
+        writecsv(string(path, "_accept_ratio.csv"), accept_ratio)
+    end
 end # module
