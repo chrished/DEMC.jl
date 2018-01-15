@@ -16,7 +16,7 @@ module DEMCMC
 
     using ParallelDataTransfer
     using Plots
-
+    ENV["GKSwstype"]="100"
     gr()
     plot(ones(3))
     """
