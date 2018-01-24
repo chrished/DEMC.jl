@@ -19,7 +19,7 @@ This repository contains
 ## Sample Usage
 For a self-contained example see `normal_direct_example.jl` in the example directory.
 
-One example run for simulating a Multivariate Normal gives:
+One example run for simulating a Multivariate Normal gives the following simulated densities for dimension 1 and 2. The figure was created by the `normal_direct_example.jl` script. Check there for details.
 ![Simulated Multivariate Normal](./img/normal_direct_hist_1_2.png)
 
 Here the main setup, you only need to supply your objective function and set the right number of parameters.
