@@ -60,5 +60,4 @@ h2 = histogram(chainflat[:,2], lab = "DE MCMC", normed=true, nbin = 33)
 plot!(x2, normal2, lab="target", linewidth = 3)
 
 p = plot(h1, h2, layout=(2,1) )
-title!("Simulated vs True Density: Dimension 1 and 2")
 savefig(p,"./img/normal_direct_hist_1_2.png")
