@@ -17,7 +17,10 @@ This repository contains
 
 
 ## Sample Usage
-to be updated
+
+```julia
+using DEMCMC
+```
 ## References
 
 Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2014). Bayesian data analysis (Vol. 2). Boca Raton, FL: CRC press.
