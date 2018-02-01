@@ -9,7 +9,7 @@ par=θ
 distr = Exponential(θ)
 # log objective function
 
-log_obj(mean) = log(pdf(distr, mean))
+log_obj(mean) = log.(pdf.(distr, mean))[1]
 # make guess for parameter population
 Npop = 3*ndim
 
