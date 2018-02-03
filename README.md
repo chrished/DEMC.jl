@@ -10,11 +10,12 @@
 
 This repository contains
 * implementation of the "DE-MCMC" algorithm proposed by Ter Braak (2006).
-* parallelized computation of "DE-MCMC" algorithm (parallel over the different chains)
+* POSSIBLY THIS IS NOT VALID: parallelized computation of "DE-MCMC" algorithm (parallel over the different chains)
 * convergence check: R̂ statistic as in Gelman et al. (2014).
 * convenience function to display trace of obj function value in simulation, convergence check and acceptance ratios
 * convenience function to calculate mean and covariance of simulated chains
 
+TODO: DEMCz Algorithm and renaming of repository
 
 ## Sample Usage
 For a self-contained example see `normal_direct_example.jl` in the example directory.
@@ -51,4 +52,6 @@ Rhat = DEMCMC.Rhat_gelman(demc_2ndrun.chain, Npop, Ngeneration, Npar)
 
 Gelman, A., Carlin, J. B., Stern, H. S., Dunson, D. B., Vehtari, A., & Rubin, D. B. (2014). Bayesian data analysis (Vol. 2). Boca Raton, FL: CRC press.
 
-Ter Braak, C. J. (2006). A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution: easy Bayesian computing for real parameter spaces. Statistics and Computing, 16(3), 239-249.
+Ter Braak, Cajo JF (2006). A Markov Chain Monte Carlo version of the genetic algorithm Differential Evolution: easy Bayesian computing for real parameter spaces. Statistics and Computing, 16(3), 239-249.
+
+ter Braak, Cajo JF, and Jasper A. Vrugt. "Differential evolution Markov chain with snooker updater and fewer chains." Statistics and Computing 18.4 (2008): 435-446.
