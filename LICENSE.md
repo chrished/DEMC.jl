@@ -1,4 +1,4 @@
-The DEMCMC.jl package is licensed under the MIT "Expat" License:
+The DEMC.jl package is licensed under the MIT "Expat" License:
 
 > Copyright (c) 2018: christoph hedtrich.
 >
