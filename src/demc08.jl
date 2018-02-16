@@ -21,6 +21,36 @@ function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
     return mc
 end
 
+function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ)
+    M, d = size(Zmat)
+    X = Zmat[end-N+1:end, :]
+    log_objcurrent = map(logobj, [X[i,:] for i = 1:N])
+    mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
+    wp = CachingPool(workers())
+    @everywhere global Zmat
+    @everywhere global M
+
+    passobj(myid(), workers(), [:Zmat, :M], from_mod = DEMC, to_mod = DEMC)
+
+    for ig = 1:Ngeneration
+        res = pmap(wp, ic -> update_blocks_par(mc.Xcurrent[ic, :], mc.log_objcurrent[ic]), 1:N)
+        for ic = 1:N
+            # update in chain
+            mc.chain[ic, :, ig] = res[ic][1]
+            mc.log_obj[ic, ig] = res[ic][2]
+            mc.Xcurrent[ic, :] = res[ic][1]
+            mc.log_objcurrent[ic] = res[ic][2]
+        end
+        if mod(ig, K) == 0.
+            Zmat = vcat(Zmat, mc.Xcurrent)
+            M += N
+            passobj(myid(), workers(), [:Zmat, :M], from_mod = DEMC, to_mod = DEMC)
+        end
+    end
+    return mc
+end
+
+update_blocks_par(x,f) = update_blocks(x, f, Zmat, M, logobj, blockindex, eps_scale, γ, Nblocks)
 
 function update_blocks(Xcurrent, current_logobj, Zmat, M, logobj, blockindex, eps_scale, γ, Nblocks)
     for ib in 1:Nblocks

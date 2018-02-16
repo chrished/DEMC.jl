@@ -151,7 +151,7 @@ function demc_sample_par(logobj, demc_guess, Ngeneration, blockindex, eps_scale,
 
     @everywhere global Xcurrent
     @everywhere global log_objcurrent
-    passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMCMC, to_mod = DEMCMC)
+    passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMC, to_mod = DEMC)
 
     if γ < 0.
         γ = 2.38
