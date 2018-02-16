@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # DEMC - Differential Evolution Markov Chain Monte Carlo simulation
+=======
+# DEMC - Differential Evolution Markov Chain 
+>>>>>>> 65c4f0b0adff088d197e1b5aafe9c5895c78745f
 
 
 [![Build Status](https://travis-ci.org/chrished/DEMC.jl.svg?branch=master)](https://travis-ci.org/chrished/DEMC.jl)
