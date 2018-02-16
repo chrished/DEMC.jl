@@ -16,7 +16,7 @@ Npar = length(μ)
 pop_guess = randn((Npop, Npar))
 # Number of iterations in Chain
 Nburn = 3000
-Ngeneration  = 5000
+Ngeneration  = 20000
 
 # set up of DEMC chain
 blockindex = [1:ndim] # parameter blocks: here choose all parameters to be updated simultaenously
@@ -54,9 +54,9 @@ x2 =  linspace(μ[2]-4*se[2], μ[2] + 4*se[2], 200)
 normal2 = pdf(Normal(μ[2], se[2]),x2)
 
 
-h1 = histogram(chainflat[:,1], lab = "DE MCMC", normed=true, nbin = 33)
+h1 = histogram(chainflat[:,1], lab = "DEMC", normed=true, nbin = 33)
 plot!(x1, normal1, lab="target", linewidth = 3)
-h2 = histogram(chainflat[:,2], lab = "DE MCMC", normed=true, nbin = 33)
+h2 = histogram(chainflat[:,2], lab = "DEMC", normed=true, nbin = 33)
 plot!(x2, normal2, lab="target", linewidth = 3)
 
 p = plot(h1, h2, layout=(2,1) )

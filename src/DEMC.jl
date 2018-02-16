@@ -1,4 +1,4 @@
-module DEMCMC
+module DEMC
     export demc_sample, demc_sample_par,  Rhat_gelman, convergence_check, mean_cov_chain, save_res
 
     struct MC
