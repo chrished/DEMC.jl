@@ -1,4 +1,4 @@
-# DEMCMC - Differential Evolution Markov Chain Monte Carlo simulation
+# DEMC - Differential Evolution Markov Chain 
 
 
 [![Build Status](https://travis-ci.org/chrished/DEMCMC.jl.svg?branch=master)](https://travis-ci.org/chrished/DEMCMC.jl)
