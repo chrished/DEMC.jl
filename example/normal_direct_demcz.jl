@@ -22,9 +22,12 @@ K = 10
 Z = randn((10*ndim, ndim))
 
 # Number of iterations in Chain
-Nburn = 40000
-Ngeneration  = 30000
+Nburn = 5000
+Ngeneration  = 10000
 
+mc_burn = DEMC.demcz_sample(log_obj, Z, N, K, Nburn, Nblocks, blockindex, eps_scale, γ)
+chainflat = DEMC.flatten_chain(mc_burn.chain, N, Nburn, Npar)'
+Z = chainflat[end-100*ndim+1:end, :] # new initial Z
 mc_burn = DEMC.demcz_sample(log_obj, Z, N, K, Nburn, Nblocks, blockindex, eps_scale, γ)
 chainflat = DEMC.flatten_chain(mc_burn.chain, N, Nburn, Npar)'
 Z = chainflat[end-100*ndim+1:end, :] # new initial Z
@@ -33,7 +36,7 @@ mc = DEMC.demcz_sample(log_obj, Z, N, K, Ngeneration, Nblocks, blockindex, eps_s
 
 
 # did we converge?
-convergence_check(mc.chain, mc.log_obj, N, Ngeneration, Npar, "./img/demcz_normal_" ; verbose = true)
+convergence_check(mc.chain, mc.log_obj, N, Ngeneration, Npar, "./img/demcz_normal/" ; verbose = true)
 
 # estimates
 chainflat = DEMC.flatten_chain(mc.chain, N, Ngeneration, Npar)'

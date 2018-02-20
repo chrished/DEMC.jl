@@ -29,7 +29,7 @@ function flatten_chain(chain, Npop, Ngeneration, Npar)
     return flatchain
 end
 
-function convergence_check(chain, log_obj, Npop, Ngeneration, Npar, figure_path; verbose = true)
+function convergence_check(chain, log_obj, Npop, Ngeneration, Npar, figure_path; verbose = true, parnames = [])
     nrow, ncol = size(log_obj)
     @assert nrow == Npop "number of rows of log_obj is not equal to number of chains"
     @assert ncol == Ngeneration "number of columns of log_obj is not equal to number of generations simulated"
@@ -38,11 +38,36 @@ function convergence_check(chain, log_obj, Npop, Ngeneration, Npar, figure_path;
     @assert n2 == Npar "#elements in second dimension is not equal to number of parameters"
     @assert n3 == Ngeneration "#elements in third dimension of chain is not equal to number of generations simulated"
 
+    if parnames == []
+        for ip = 1:Npar
+            append!(parnames, [string("par ", ip)])
+        end
+    end
+    try
+        mkdir(string(figure_path))
+    catch e
+        println(e)
+    end
     # acceptance ratio
     accept_ratio = sum(diff(log_obj, 2).!=0., 2)./(Ngeneration-1)
     # plot the trace of the obj function value of the chains, clean out extreme values
     p_trace = plot(log_obj')
+
     savefig(p_trace, string(figure_path, "trace_logobj.png"))
+
+    traceplots = []
+    for par in 1:Npar
+        append!(traceplots, [plot(reshape(chain[:, par , :], Npop, Ngeneration)', title=parnames[par])])
+    end
+    for par in 1:Npar
+        par_trace = plot(traceplots[par])
+        savefig(par_trace, string(figure_path, "trace_par_", par, ".png"))
+    end
+    for par in 1:Npar
+        hi = histogram(chain[:, par , :][:], nbins = 33, normed=true)
+        savefig(hi, string(figure_path, "hist_par_", par, ".png"))
+    end
+
     # Rhat Gelman
     Rhat = Rhat_gelman(chain, Npop, Ngeneration, Npar)
     if verbose

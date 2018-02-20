@@ -37,7 +37,7 @@ mc = DEMC.demcz_sample_par(log_obj, Z, N, K, Ngeneration, Nblocks, blockindex, e
 
 
 # did we converge?
-convergence_check(mc.chain, mc.log_obj, N, Ngeneration, Npar, "./img/demcz_par_normal_" ; verbose = true)
+convergence_check(mc.chain, mc.log_obj, N, Ngeneration, Npar, "./img/demcz_par_normal/" ; verbose = true)
 
 # estimates
 chainflat = DEMC.flatten_chain(mc.chain, N, Ngeneration, Npar)'
