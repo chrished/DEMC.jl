@@ -178,11 +178,11 @@ function demc_sample_par(logobj, demc_guess, Ngeneration, blockindex, eps_scale,
         Xcurrent[ic, :] = res[ic][1]
         log_objcurrent[ic] = res[ic][2]
     end
-    passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMCMC, to_mod = DEMCMC)
+    passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMC, to_mod = DEMC)
 
     for in = 2:Ngeneration
         # pmap over ic
-        res[:] = pmap(wp,ic -> DEMCMC.runblocks(in, ic,  Xcurrent, log_objcurrent, logobj, blockindex, eps_scale, γ, Ngeneration, Npop, Nblocks), 1:Npop)
+        res[:] = pmap(wp,ic -> DEMC.runblocks(in, ic,  Xcurrent, log_objcurrent, logobj, blockindex, eps_scale, γ, Ngeneration, Npop, Nblocks), 1:Npop)
         for ic = 1:Npop
             demc.chain[ic,:,in] = res[ic][1]
             demc.log_obj[ic,in] = res[ic][2]
@@ -191,7 +191,7 @@ function demc_sample_par(logobj, demc_guess, Ngeneration, blockindex, eps_scale,
             Xcurrent[ic, :] = res[ic][1]
             log_objcurrent[ic] = res[ic][2]
         end
-        passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMCMC, to_mod = DEMCMC)
+        passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMC, to_mod = DEMC)
     end
 
     return demc
