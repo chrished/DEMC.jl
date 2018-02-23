@@ -41,10 +41,6 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
 
     for ig = 1:Ngeneration
         passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMC, to_mod = DEMC)
-        if mod(ig, 100) == 0.
-            @everywhere println("At Generation $ig the best obj is ", maximum(log_objcurrent))
-            @everywhere println("At Generation $ig parameter 1 in chain 1 ", Xcurrent[1,1])
-        end
         res = pmap(wp, ic -> update_blocks(Xcurrent[ic,:], log_objcurrent[ic], Z, M, logobj, blockindex, eps_scale, γ, Nblocks), 1:N)
         for ic = 1:N
             # update in chain
