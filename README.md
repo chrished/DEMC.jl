@@ -1,4 +1,4 @@
-# DEMC - Differential Evolution Markov Chain 
+# DEMC - Differential Evolution Markov Chain
 
 
 [![Build Status](https://travis-ci.org/chrished/DEMC.jl.svg?branch=master)](https://travis-ci.org/chrished/DEMC.jl)
@@ -10,15 +10,14 @@
 
 This repository contains
 * implementation of the "DEMC" algorithm proposed by Ter Braak (2006).
-* POSSIBLY THIS IS NOT VALID: parallelized computation of "DEMC" algorithm (parallel over the different chains)
-* convergence check: R̂ statistic as in Gelman et al. (2014).
+* implementation of the "DEMCz"  algorithm proposed in Ter Braak and Vrugt (2008)
+* CHECK IF CORRECT! convergence check: R̂ statistic as in Gelman et al. (2014).
 * convenience function to display trace of obj function value in simulation, convergence check and acceptance ratios
 * convenience function to calculate mean and covariance of simulated chains
 
-TODO: DEMCz Algorithm and renaming of repository
 
 ## Sample Usage
-For a self-contained example see `normal_direct_example.jl` in the example directory.
+For a self-contained example see `normal_direct_demcz.jl` in the example directory.
 
 One example run for simulating a Multivariate Normal gives the following simulated densities for dimension 1 and 2. The figure was created by the `normal_direct_example.jl` script. Check there for details.
 ![Simulated Multivariate Normal](./img/normal_direct_hist_1_2.png)
