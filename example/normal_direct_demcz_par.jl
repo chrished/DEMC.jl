@@ -4,7 +4,7 @@ addprocs(3)
     using Distributions
     using DEMC
     using ParallelDataTransfer
-    srand(myid())
+    srand(1)
     # set up target distribution: Multivariate Normal
     ndim = 12 # Number of dimensions
     μ = rand(ndim) # mean of each dimension
@@ -15,6 +15,9 @@ addprocs(3)
     # log objective function
     log_obj(mean) = log(pdf(MvNormal(μ, Σ), mean))
 end
+@everywhere srand(myid())
+@everywhere println("μ: $μ")
+@everywhere println("obj at true mean: ", log_obj(μ))
 
 # set up of DEMCz chain
 Npar = length(μ)
@@ -27,7 +30,7 @@ K = 10
 Z = randn((10*ndim, ndim))*5
 
 # Number of iterations in Chain
-Nburn = 5000
+Nburn = 10000
 Ngeneration = 10000
 
 mc_burn = demcz_sample_par(log_obj, Z, N, K, Nburn, Nblocks, blockindex, eps_scale, γ)
@@ -41,11 +44,11 @@ mc = DEMC.demcz_sample_par(log_obj, Z, N, K, Ngeneration, Nblocks, blockindex, e
 # did we converge?
 convergence_check(mc.chain, mc.log_obj, N, Ngeneration, Npar, "./img/demcz_par_normal/" ; verbose = true)
 
-
 # estimates
 chainflat = DEMC.flatten_chain(mc.chain, N, Ngeneration, Npar)'
 # covariance of estimates
-cov_bhat = cov(chainflat)
+b, Σb = mean_cov_chain(mc.chain, N, Ngeneration, Npar)
+
 
 #
 # # plot simulated vs true distribution

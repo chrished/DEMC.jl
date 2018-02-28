@@ -4,7 +4,7 @@ function Rhat_gelman(chain, Npop, Ngeneration, Npar)
     # split each chain in two
     n = Int(floor(Ngeneration/2))
     m = Npop*2
-    chain_split = vcat(chain[:,:,1:n], chain[:,:,n+1:2*n])
+    chain_split = vcat(chain[:,:,1:n], chain[:,:,n+1:end])
     avg_chains = mean(chain_split, 3)
     avg = mean(avg_chains, 1)
 
