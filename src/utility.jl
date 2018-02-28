@@ -43,10 +43,12 @@ function convergence_check(chain, log_obj, Npop, Ngeneration, Npar, figure_path;
             append!(parnames, [string("par ", ip)])
         end
     end
-    try
-        mkdir(string(figure_path))
-    catch e
-        println(e)
+    if verbose
+        try
+            mkdir(string(figure_path))
+        catch e
+            println(e)
+        end
     end
     # acceptance ratio
     accept_ratio = sum(diff(log_obj, 2).!=0., 2)./(Ngeneration-1)
