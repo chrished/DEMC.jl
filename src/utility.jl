@@ -104,3 +104,12 @@ function save_res(b, Σb, Rhat, accept_ratio, path)
     writecsv(string(path, "_Rhat.csv"), Rhat)
     writecsv(string(path, "_accept_ratio.csv"), accept_ratio)
 end
+
+function extract_best(mc, N)
+    bestval = maximum(mc.log_obj)
+    indbest = findfirst(bestval.==mc.log_obj)
+    col = 1 + Int(floor(indbest/N))
+    row = indbest - (col-1)*N
+    bestpar = mc.chain[row, :, col]
+    return bestval, bestpar
+end
