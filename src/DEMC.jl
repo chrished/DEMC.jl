@@ -23,6 +23,7 @@ module DEMC
 
     include("demc06.jl") # algorithm from 2006 paper
     include("demc08.jl") # DEMCz(s) algorithms from 2008 paper
+    include("demc08_anneal.jl") # Annealing variants of DEMCz(s) algorithms from 2008 paper
     include("utility.jl")
 
 end # module
