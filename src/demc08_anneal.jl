@@ -4,6 +4,12 @@ function demcz_anneal(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
     log_objcurrent = map(logobj, [X[i,:] for i = 1:N])
     mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
     temp = 1.
+
+    bestval = maximum(log_objcurrent)
+    bestpar = X[findfirst(bestval.==log_objcurrent), :]
+    println("iteration 0")
+    println("bestval = $bestval")
+    println("bestpar = $bestpar")
     for ig = 1:Ngeneration
         temp = tempfun(ig)
         for ic = 1:N
@@ -17,6 +23,9 @@ function demcz_anneal(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
         if mod(ig, K) == 0.
             Zmat = vcat(Zmat, mc.Xcurrent)
             M += N
+            println("iteration $ig")
+            println("bestval = $bestval")
+            println("bestpar = $bestpar")
         end
     end
     return mc
@@ -41,6 +50,12 @@ function demcz_anneal_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
 
     passobj(myid(), workers(), [:Xcurrent, :log_objcurrent, :temp], from_mod = DEMC, to_mod = DEMC)
     passobj(myid(), workers(), [:Z, :M], from_mod = DEMC, to_mod = DEMC)
+    bestval = maximum(log_objcurrent)
+    bestpar = Xcurrent[findfirst(bestval.==log_objcurrent), :]
+    println("iteration 0")
+    println("bestval = $bestval")
+    println("bestpar = $bestpar")
+
     for ig = 1:Ngeneration
         temp = tempfun(ig)
         passobj(myid(), workers(), [:Xcurrent, :log_objcurrent, :temp], from_mod = DEMC, to_mod = DEMC)
@@ -54,12 +69,15 @@ function demcz_anneal_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
             Xcurrent[ic, :] = res[ic][1]
             log_objcurrent[ic] = res[ic][2]
         end
-
+        bestval = maximum(log_objcurrent)
+        bestpar[:] = Xcurrent[findfirst(bestval.==log_objcurrent), :]
         if mod(ig, K) == 0.
             Z = vcat(Z, mc.Xcurrent)
             M += N
             passobj(myid(), workers(), [:Z, :M], from_mod = DEMC, to_mod = DEMC)
-            println("iteration $ig max val: ", maximum(mc.log_obj))
+            println("iteration $ig")
+            println("bestval = $bestval")
+            println("bestpar = $bestpar")
         end
     end
     return mc
