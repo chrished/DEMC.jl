@@ -20,6 +20,8 @@ function demcz_anneal(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
             mc.Xcurrent[ic, :] = Xcurrent
             mc.log_objcurrent[ic] = current_logobj
         end
+        bestval = maximum(mc.log_objcurrent)
+        bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
         if mod(ig, K) == 0.
             Zmat = vcat(Zmat, mc.Xcurrent)
             M += N
@@ -37,6 +39,8 @@ function demcz_anneal_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
     X = Zmat[end-N+1:end, :]
     log_objcurrent = pmap(wp, logobj, [X[i,:] for i = 1:N])
     mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
+    mc.Xcurrent = X
+    mc.log_objcurrent = log_objcurrent
     global Xcurrent = copy(mc.Xcurrent)
     global log_objcurrent = copy(mc.log_objcurrent)
     global Z = Zmat
