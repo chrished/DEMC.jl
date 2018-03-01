@@ -39,8 +39,6 @@ function demcz_anneal_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
     X = Zmat[end-N+1:end, :]
     log_objcurrent = pmap(wp, logobj, [X[i,:] for i = 1:N])
     mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
-    mc.Xcurrent = X
-    mc.log_objcurrent = log_objcurrent
     global Xcurrent = copy(mc.Xcurrent)
     global log_objcurrent = copy(mc.log_objcurrent)
     global Z = Zmat
@@ -54,6 +52,7 @@ function demcz_anneal_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
 
     passobj(myid(), workers(), [:Xcurrent, :log_objcurrent, :temp], from_mod = DEMC, to_mod = DEMC)
     passobj(myid(), workers(), [:Z, :M], from_mod = DEMC, to_mod = DEMC)
+
     bestval = maximum(log_objcurrent)
     bestpar = Xcurrent[findfirst(bestval.==log_objcurrent), :]
     println("iteration 0")
