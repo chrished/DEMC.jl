@@ -113,9 +113,7 @@ function extract_best(mc, N)
         col += 1
     end
     row = indbest - (col-1)*N
-    if row == 0
-        println("row is zero")
-
+    
     bestpar = mc.chain[row, :, col]
     return bestval, bestpar
 end
