@@ -108,8 +108,14 @@ end
 function extract_best(mc, N)
     bestval = maximum(mc.log_obj)
     indbest = findfirst(bestval.==mc.log_obj)
-    col = 1 + Int(floor(indbest/N))
+    col = Int(floor(indbest/N))
+    if (col+1)*N < indbest
+        col += 1
+    end
     row = indbest - (col-1)*N
+    if row == 0
+        println("row is zero")
+
     bestpar = mc.chain[row, :, col]
     return bestval, bestpar
 end
