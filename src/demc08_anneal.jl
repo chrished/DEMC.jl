@@ -59,6 +59,7 @@ function demcz_anneal_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
             Z = vcat(Z, mc.Xcurrent)
             M += N
             passobj(myid(), workers(), [:Z, :M], from_mod = DEMC, to_mod = DEMC)
+            println("iteration $ig max val: ", maximum(mc.log_obj))
         end
     end
     return mc
