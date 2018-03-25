@@ -115,7 +115,7 @@ function update_demcz_chain_block_anneal(Xcurrent, current_logobj, ib, Zmat, M, 
     if temp == 0.
         temp += 1e-9
     end
-    if  log(rand()*temp +1.-temp) < (log_objXprop - current_logobj)
+    if  log(rand()) < (log_objXprop - current_logobj)/temp
         return Xproposal, log_objXprop
     else
         return Xcurrent, current_logobj

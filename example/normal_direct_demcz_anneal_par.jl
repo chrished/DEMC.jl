@@ -26,7 +26,7 @@ Z = randn((10*ndim, ndim))
 
 # Number of iterations in Chain
 Ngeneration  = 6000
-tfun(x) = max(0.,1. - (x/5000))
+tfun(x) = max(0.,1. - (x/Ngeneration))
 mc = DEMC.demcz_anneal_par(log_obj, Z, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ, tfun)
 
 maxf, maxpar = extract_best(mc, N)
