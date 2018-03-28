@@ -30,7 +30,7 @@ function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
     return mc
 end
 
-function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ)
+function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ; verbose=true)
     wp = CachingPool(workers())
     Mval, d = size(Zmat)
     X = Zmat[end-N+1:end, :]
