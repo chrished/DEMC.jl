@@ -1,9 +1,13 @@
-function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ)
+function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ; verbose = true)
     M, d = size(Zmat)
     X = Zmat[end-N+1:end, :]
     log_objcurrent = map(logobj, [X[i,:] for i = 1:N])
     mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
-
+    if verbose
+        println("iteration 0")
+        println("bestval = $bestval")
+        println("bestpar = $bestpar")
+    end
     for ig = 1:Ngeneration
         for ic = 1:N
             Xcurrent, current_logobj = update_blocks(mc.Xcurrent[ic, :], mc.log_objcurrent[ic], Zmat, M, logobj, blockindex, eps_scale, γ, Nblocks)
@@ -16,6 +20,11 @@ function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
         if mod(ig, K) == 0.
             Zmat = vcat(Zmat, mc.Xcurrent)
             M += N
+            if verbose
+                println("iteration $ig")
+                println("bestval = $bestval")
+                println("bestpar = $bestpar")
+            end
         end
     end
     return mc
@@ -39,6 +48,11 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
     passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMC, to_mod = DEMC)
     passobj(myid(), workers(), [:Z, :M], from_mod = DEMC, to_mod = DEMC)
 
+    if verbose
+        println("iteration 0")
+        println("bestval = $bestval")
+        println("bestpar = $bestpar")
+    end
     for ig = 1:Ngeneration
         passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMC, to_mod = DEMC)
         res = pmap(wp, ic -> update_blocks(Xcurrent[ic,:], log_objcurrent[ic], Z, M, logobj, blockindex, eps_scale, γ, Nblocks), 1:N)
@@ -56,6 +70,11 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
             Z = vcat(Z, mc.Xcurrent)
             M += N
             passobj(myid(), workers(), [:Z, :M], from_mod = DEMC, to_mod = DEMC)
+            if verbose
+                println("iteration $ig")
+                println("bestval = $bestval")
+                println("bestpar = $bestpar")
+            end
         end
     end
     return mc
