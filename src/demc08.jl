@@ -4,6 +4,8 @@ function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
     log_objcurrent = map(logobj, [X[i,:] for i = 1:N])
     mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
     if verbose
+        bestval = maximum(mc.log_objcurrent)
+        bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
         println("iteration 0")
         println("bestval = $bestval")
         println("bestpar = $bestpar")
@@ -21,6 +23,8 @@ function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
             Zmat = vcat(Zmat, mc.Xcurrent)
             M += N
             if verbose
+                bestval = maximum(mc.log_objcurrent)
+                bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
                 println("iteration $ig")
                 println("bestval = $bestval")
                 println("bestpar = $bestpar")
@@ -49,6 +53,8 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
     passobj(myid(), workers(), [:Z, :M], from_mod = DEMC, to_mod = DEMC)
 
     if verbose
+        bestval = maximum(mc.log_objcurrent)
+        bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
         println("iteration 0")
         println("bestval = $bestval")
         println("bestpar = $bestpar")
@@ -71,6 +77,8 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
             M += N
             passobj(myid(), workers(), [:Z, :M], from_mod = DEMC, to_mod = DEMC)
             if verbose
+                bestval = maximum(mc.log_objcurrent)
+                bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
                 println("iteration $ig")
                 println("bestval = $bestval")
                 println("bestpar = $bestpar")
