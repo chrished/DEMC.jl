@@ -34,6 +34,42 @@ function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
     return mc
 end
 
+function demcz_sample_rg(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γfun; verbose = true)
+    M, d = size(Zmat)
+    X = Zmat[end-N+1:end, :]
+    log_objcurrent = map(logobj, [X[i,:] for i = 1:N])
+    mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
+    if verbose
+        bestval = maximum(mc.log_objcurrent)
+        bestpar = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
+        println("iteration 0")
+        println("bestval = $bestval")
+        println("bestpar = $bestpar")
+    end
+    for ig = 1:Ngeneration
+        for ic = 1:N
+            Xcurrent, current_logobj = update_blocks(mc.Xcurrent[ic, :], mc.log_objcurrent[ic], Zmat, M, logobj, blockindex, eps_scale, γfun(), Nblocks)
+            # update in chain
+            mc.chain[ic, :, ig] = Xcurrent
+            mc.log_obj[ic, ig] = current_logobj
+            mc.Xcurrent[ic, :] = Xcurrent
+            mc.log_objcurrent[ic] = current_logobj
+        end
+        if mod(ig, K) == 0.
+            Zmat = vcat(Zmat, mc.Xcurrent)
+            M += N
+            if verbose
+                bestval = maximum(mc.log_objcurrent)
+                bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
+                println("iteration $ig")
+                println("bestval = $bestval")
+                println("bestpar = $bestpar")
+            end
+        end
+    end
+    return mc
+end
+
 function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ; verbose=true)
     wp = CachingPool(workers())
     Mval, d = size(Zmat)

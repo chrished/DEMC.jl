@@ -33,6 +33,43 @@ function demcz_anneal(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
     return mc
 end
 
+function demcz_anneal_rg(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γfun, tempfun)
+    M, d = size(Zmat)
+    X = Zmat[end-N+1:end, :]
+    log_objcurrent = map(logobj, [X[i,:] for i = 1:N])
+    mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
+    temp = 1.
+
+    bestval = maximum(log_objcurrent)
+    bestpar = X[findfirst(bestval.==log_objcurrent), :]
+    println("iteration 0")
+    println("bestval = $bestval")
+    println("bestpar = $bestpar")
+    γ = γfun()
+    for ig = 1:Ngeneration
+        temp = tempfun(ig)
+        for ic = 1:N
+            γ = γfun()
+            Xcurrent, current_logobj = update_blocks_anneal(mc.Xcurrent[ic, :], mc.log_objcurrent[ic], Zmat, M, logobj, blockindex, eps_scale, γ, Nblocks,temp)
+            # update in chain
+            mc.chain[ic, :, ig] = Xcurrent
+            mc.log_obj[ic, ig] = current_logobj
+            mc.Xcurrent[ic, :] = Xcurrent
+            mc.log_objcurrent[ic] = current_logobj
+        end
+        bestval = maximum(mc.log_objcurrent)
+        bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
+        if mod(ig, K) == 0.
+            Zmat = vcat(Zmat, mc.Xcurrent)
+            M += N
+            println("iteration $ig")
+            println("bestval = $bestval")
+            println("bestpar = $bestpar")
+        end
+    end
+    return mc
+end
+
 function demcz_anneal_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ, tempfun)
     wp = CachingPool(workers())
     Mval, d = size(Zmat)
