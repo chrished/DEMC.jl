@@ -70,7 +70,7 @@ function demcz_sample_rg(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, e
     return mc
 end
 
-function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ; verbose=true)
+function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ; verbose=true, print_to_file=false, file = "./demcstat.txt")
     wp = CachingPool(workers())
     Mval, d = size(Zmat)
     X = Zmat[end-N+1:end, :]
@@ -91,9 +91,17 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
     if verbose
         bestval = maximum(mc.log_objcurrent)
         bestpar = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
-        println("iteration 0")
-        println("bestval = $bestval")
-        println("bestpar = $bestpar")
+        if print_to_file == true
+            f = open(file, "w")
+            println(file, "iteration 0")
+            println(file, "bestval = $bestval")
+            println(file, "bestpar = $bestpar")
+            close(f)
+        else
+            println("iteration 0")
+            println("bestval = $bestval")
+            println("bestpar = $bestpar")
+        end
     end
     for ig = 1:Ngeneration
         passobj(myid(), workers(), [:Xcurrent, :log_objcurrent], from_mod = DEMC, to_mod = DEMC)
@@ -115,9 +123,17 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
             if verbose
                 bestval = maximum(mc.log_objcurrent)
                 bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
-                println("iteration $ig")
-                println("bestval = $bestval")
-                println("bestpar = $bestpar")
+                if print_to_file
+                    f = open(file, "w")
+                    println(file, "iteration $ig")
+                    println(file, "bestval = $bestval")
+                    println(file, "bestpar = $bestpar")
+                    close(f)
+                else
+                    println("iteration $ig")
+                    println("bestval = $bestval")
+                    println("bestpar = $bestpar")
+                end
             end
         end
     end
