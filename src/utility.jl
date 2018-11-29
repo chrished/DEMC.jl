@@ -4,12 +4,15 @@ function Rhat_gelman(chain, Npop, Ngeneration, Npar)
     # split each chain in two
     n = Int(floor(Ngeneration/2))
     m = Npop*2
-    chain_split = vcat(chain[:,:,1:n], chain[:,:,n+1:end])
-    avg_chains = mean(chain_split, 3)
-    avg = mean(avg_chains, 1)
+    #chain_split = vcat(chain[:,:,1:n], chain[:,:,n+1:end])
+    chainsplit = zeros(eltype(chain), (m, Npar, n))
+    chainsplit[1:Npop, :, :] .= chain[:,:,1:n]
+    chainsplit[Npop+1:end, :, :] .= chain[:,:,n+1:2*n]
+    avg_par = mean(chainsplit, [1,3])
+    avg_chains = mean(chainsplit, 3)
 
-    B = n/(m-1) * sum((avg_chains .- avg).^2, 1)
-    sj = 1/(n-1)*sum((chain_split .- avg_chains).^2, 3)
+    B = n/(m-1) * sum((avg_chains .- avg_par).^2, 1)
+    sj = 1/(n-1)*sum((chainsplit .- avg_chains).^2, 3)
     W = 1/m * sum(sj, 1)
     varhat = (n-1)/n * W + 1/n*B
     Rhat =zeros(Npar)
