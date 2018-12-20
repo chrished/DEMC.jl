@@ -24,7 +24,7 @@ function flatten_chain(chain, Npop, Ngeneration, Npar)
     flatchain = Array{eltype(chain)}(Npar, Npop*Ngeneration)
     for i = 1:Npar
         count = 0
-        for ic = 1:Npop, ig = 1:Ngeneration
+        for  ig = 1:Ngeneration, ic = 1:Npop
             count += 1
             flatchain[i, count] = chain[ic, i, ig]
         end
