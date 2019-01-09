@@ -123,16 +123,20 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
             if verbose
                 bestval = maximum(mc.log_objcurrent)
                 bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
+                avglast100 = mean(mc.chain[:, :, max(1, ig-100):ig], 1:2)
                 if print_to_file
                     f = open(file, "w")
                     println(f, "iteration $ig")
                     println(f, "bestval = $bestval")
                     println(f, "bestpar = $bestpar")
+                    println(f, "avg last 100 = $avglast100")
                     close(f)
                 else
                     println("iteration $ig")
                     println("bestval = $bestval")
                     println("bestpar = $bestpar")
+                    println("avg last 100 = $avglast100")
+
                 end
             end
         end
