@@ -126,12 +126,14 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
                 avglast100 = mean(mc.chain[:, :, max(1, ig-100):ig], [1,3])
                 avglast250 = mean(mc.chain[:, :, max(1, ig-250):ig], [1,3])
                 accept_ratio = mean(mc.log_obj[:,max(1, ig-250):ig-1].!=mc.log_obj[:,max(2, ig-249):ig],2)
+                accept_ratio100 = mean(mc.log_obj[:,max(1, ig-100):ig-1].!=mc.log_obj[:,max(2, ig-99):ig],2)
                 if print_to_file
                     f = open(file, "w")
                     println(f, "iteration $ig")
                     println(f, "bestval = $bestval")
                     println(f, "bestpar = $bestpar")
                     println(f, "avg last 100 = $avglast100")
+                    println(f, "accept_ratio last 100 = $accept_ratio100")
                     println(f, "avg last 250 = $avglast250")
                     println(f, "accept_ratio last 250 = $accept_ratio")
                     close(f)
@@ -140,7 +142,9 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
                     println("bestval = $bestval")
                     println("bestpar = $bestpar")
                     println("avg last 100 = $avglast100")
-
+                    println("accept_ratio last 100 = $accept_ratio100")
+                    println("avg last 250 = $avglast250")
+                    println("accept_ratio last 250 = $accept_ratio")
                 end
             end
         end
