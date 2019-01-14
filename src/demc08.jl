@@ -124,12 +124,16 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
                 bestval = maximum(mc.log_objcurrent)
                 bestpar[:] = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
                 avglast100 = mean(mc.chain[:, :, max(1, ig-100):ig], [1,3])
+                avglast250 = mean(mc.chain[:, :, max(1, ig-250):ig], [1,3])
+                accept_ratio = mean(mc.log_obj[:,max(1, ig-250):ig-1].!=mc.log_obj[:,max(2, ig-249):ig],2)
                 if print_to_file
                     f = open(file, "w")
                     println(f, "iteration $ig")
                     println(f, "bestval = $bestval")
                     println(f, "bestpar = $bestpar")
                     println(f, "avg last 100 = $avglast100")
+                    println(f, "avg last 250 = $avglast250")
+                    println(f, "accept_ratio last 250 = $accept_ratio")
                     close(f)
                 else
                     println("iteration $ig")
