@@ -1,6 +1,6 @@
 name = "DEMC"
 uuid = "2156377a-587f-51b2-8fb6-81e449bb8ca4"
-authors = ["Johannes <jhedtrich@gmail.com>"]
+authors = ["chrished <christoph.hedtrich@upf.edu>"]
 version = "0.1.0"
 
 [deps]
