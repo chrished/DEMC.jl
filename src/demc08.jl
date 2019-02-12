@@ -2,7 +2,7 @@ function demcz_sample(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_
     M, d = size(Zmat)
     X = Zmat[end-N+1:end, :]
     log_objcurrent = map(logobj, [X[i,:] for i = 1:N])
-    mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
+    mc = MC(Array{Float64}(undef, N,  d, Ngeneration),Array{Float64}(undef, N, Ngeneration), X, log_objcurrent)
     if verbose
         bestval = maximum(mc.log_objcurrent)
         bestpar = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
@@ -38,7 +38,7 @@ function demcz_sample_rg(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, e
     M, d = size(Zmat)
     X = Zmat[end-N+1:end, :]
     log_objcurrent = map(logobj, [X[i,:] for i = 1:N])
-    mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
+    mc = MC(Array{Float64}(undef, N,  d, Ngeneration),Array{Float64}(undef, N, Ngeneration), X, log_objcurrent)
     if verbose
         bestval = maximum(mc.log_objcurrent)
         bestpar = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
@@ -75,7 +75,7 @@ function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, 
     Mval, d = size(Zmat)
     X = Zmat[end-N+1:end, :]
     log_objcurrent = pmap(wp, logobj, [X[i,:] for i = 1:N])
-    mc = MC(Array{Float64}(N,  d, Ngeneration),Array{Float64}(N, Ngeneration), X, log_objcurrent)
+    mc = MC(Array{Float64}(undef, N,  d, Ngeneration),Array{Float64}(undef, N, Ngeneration), X, log_objcurrent)
     global Xcurrent = copy(mc.Xcurrent)
     global log_objcurrent = copy(mc.log_objcurrent)
     global Z = Zmat
@@ -168,7 +168,7 @@ function update_demcz_chain_block(Xcurrent, current_logobj, ib, Zmat, M, logobj,
     i1 = rand(set)
     deleteat!(set, i1)
     i2 = rand(set)
-    de_diffvec = zeros(Xproposal)
+    de_diffvec = zeros(length(Xproposal))
     block = blockindex[ib]
     blocklen = length(block)
     if blocklen == 1

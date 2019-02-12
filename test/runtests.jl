@@ -1,4 +1,4 @@
-using DEMCMC
+using DEMC
 using Base.Test
 
 # write your own tests here

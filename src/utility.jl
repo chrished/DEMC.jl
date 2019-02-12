@@ -8,12 +8,12 @@ function Rhat_gelman(chain, Npop, Ngeneration, Npar)
     chainsplit = zeros(eltype(chain), (m, Npar, n))
     chainsplit[1:Npop, :, :] .= chain[:,:,1:n]
     chainsplit[Npop+1:end, :, :] .= chain[:,:,n+1:2*n]
-    avg_par = mean(chainsplit, [1,3])
-    avg_chains = mean(chainsplit, 3)
+    avg_par = mean(chainsplit, dims = [1,3])
+    avg_chains = mean(chainsplit, dims = 3)
 
-    B = n/(m-1) * sum((avg_chains .- avg_par).^2, 1)
-    sj = 1/(n-1)*sum((chainsplit .- avg_chains).^2, 3)
-    W = 1/m * sum(sj, 1)
+    B = n/(m-1) * sum((avg_chains .- avg_par).^2, dims = 1)
+    sj = 1/(n-1)*sum((chainsplit .- avg_chains).^2, dims =  3)
+    W = 1/m * sum(sj, dims = 1)
     varhat = (n-1)/n * W + 1/n*B
     Rhat =zeros(Npar)
     Rhat[:] = sqrt.(varhat./W)[:]
@@ -21,7 +21,7 @@ function Rhat_gelman(chain, Npop, Ngeneration, Npar)
 end
 
 function flatten_chain(chain, Npop, Ngeneration, Npar)
-    flatchain = Array{eltype(chain)}(Npar, Npop*Ngeneration)
+    flatchain = Array{eltype(chain)}(undef, Npar, Npop*Ngeneration)
     for i = 1:Npar
         count = 0
         for  ig = 1:Ngeneration, ic = 1:Npop
@@ -48,13 +48,13 @@ function convergence_check(chain, log_obj, Npop, Ngeneration, Npar, figure_path;
     end
     if verbose
         try
-            mkdir(string(figure_path))
+            mkpath(string(figure_path))
         catch e
             println(e)
         end
     end
     # acceptance ratio
-    accept_ratio = sum(diff(log_obj, 2).!=0., 2)./(Ngeneration-1)
+    accept_ratio = sum(diff(log_obj, dims = 2).!=0., dims = 2)./ (Ngeneration-1)
     # plot the trace of the obj function value of the chains, clean out extreme values
     if verbose
         p_trace = plot(log_obj')
@@ -96,8 +96,8 @@ function mean_cov_chain(chain, Npop, Ngeneration, Npar)
     @assert n3 == Ngeneration "#elements in third dimension of chain is not equal to number of generations simulated"
 
     flatchain = flatten_chain(chain, Npop, Ngeneration, Npar)
-    b = mean(flatchain, 2)[:]
-    cov = 1./(Ngeneration*Npop) * (flatchain .- b) * (flatchain .- b)'
+    b = mean(flatchain, dims = 2)[:]
+    cov = 1.0 / (Ngeneration*Npop) * (flatchain .- b) * (flatchain .- b)'
     return b, cov
 end
 
