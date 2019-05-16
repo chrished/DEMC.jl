@@ -3,6 +3,8 @@ module DEMC
 
     using ParallelDataTransfer
     using Plots
+    using Distributed
+    using Statistics
 
     struct MC
         chain::Array{Float64} # parameter population for all generations
