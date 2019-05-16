@@ -8,8 +8,7 @@ makedocs(;
     ],
     repo="https://github.com/chrished/DEMC.jl/blob/{commit}{path}#L{line}",
     sitename="DEMC.jl",
-    authors="christoph hedtrich",
-    assets=[],
+    authors="christoph hedtrich"
 )
 
 deploydocs(;
