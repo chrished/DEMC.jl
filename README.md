@@ -1,8 +1,7 @@
 # DEMC - Differential Evolution Markov Chain Monte Carlo
 
 
-[![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://chrished.github.io/DEMC.jl/stable)
-[![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://chrished.github.io/DEMC.jl/dev)
+[![Dev](https://img.shields.io/badge/docs-stable-blue.svg)](https://chrished.github.io/DEMC.jl/dev)
 [![Build Status](https://travis-ci.com/chrished/DEMC.jl.svg?branch=master)](https://travis-ci.com/chrished/DEMC.jl)
 [![Codecov](https://codecov.io/gh/chrished/DEMC.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/chrished/DEMC.jl)
 [![Coveralls](https://coveralls.io/repos/github/chrished/DEMC.jl/badge.svg?branch=master)](https://coveralls.io/github/chrished/DEMC.jl?branch=master)
@@ -12,7 +11,7 @@
 
 
 ## Use Cases
-* useful for simulating distributions that are *not easily differentiable*, have moderate dimension (>1, <500), and dimensions are potentially *highly correlated*. One example is to simulate parameter distributions in indirect inference estimators.
+* useful for simulating distributions that are **not easily differentiable**, have moderate dimensionality (>1, <250), and dimensions are potentially **highly correlated**. One example is to simulate parameter distributions in indirect inference estimators.
 
 ## Sample Usage
 ```julia
