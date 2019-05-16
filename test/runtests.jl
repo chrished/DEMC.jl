@@ -1,5 +1,8 @@
 using DEMC
-using Base.Test
+using Test
 
-# write your own tests here
-@test 1 == 2
+@testset "DEMC.jl" begin
+    # Write your own tests here.
+    println("test with norm pdf in serial computation")
+    include("example_normpdf.jl")
+end
