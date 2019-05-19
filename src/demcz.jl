@@ -48,8 +48,8 @@ end
 function print_status(mc, ig)
     #bestval = maximum(mc.log_objcurrent)
     #bestpar = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
-    avgpar = mean(mc.chain, dims = [1,3])
-    avgval = mean(mc.log_obj, dims = [1,2])
+    avgpar = mean(mc.chain[:,:,1:max(1,ig)], dims = [1,3])
+    avgval = mean(mc.log_obj[:,1:max(1,ig)], dims = [1,2])
 
     println("-----------------------")
     println("iteration $ig")
