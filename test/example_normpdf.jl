@@ -32,7 +32,7 @@ mc, Z = DEMC.demcz_sample(log_obj, Z, N, K, 5000, Nblocks, blockindex, eps_scale
 mc, Z = DEMC.demcz_sample(log_obj, Z[end-10*ndim:end,:], N, K, Ngen, Nblocks, blockindex, eps_scale, γ; prevrun=mc, verbose=false)
 
 # drop first half of chain
-Ntot = size(mc,3)
+Ntot = size(mc.chain,3)
 keep = Int(Ntot-round(Ngen/2))+1:Ntot
 Ngen_burned = length(keep)
 chain_burned = mc.chain[:,:,keep]

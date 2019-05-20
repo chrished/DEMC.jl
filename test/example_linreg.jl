@@ -46,7 +46,8 @@ Ngen = 2500
 mc, Z = DEMC.demcz_sample(log_obj, Z, N, K, Ngen, Nblocks, blockindex, eps_scale, γ; verbose =false)
 
 # drop first half of chain
-keep = Int(round(Ngen/2))+1:Ngen
+Ntot = size(mc.chain,3)
+keep = Int(Ntot-round(Ngen/2))+1:Ntot
 Ngen_burned = length(keep)
 chain_burned = mc.chain[:,:,keep]
 chainflat = DEMC.flatten_chain(chain_burned, N, Ngen_burned, Npar)'
