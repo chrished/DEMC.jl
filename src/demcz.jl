@@ -1,5 +1,7 @@
 function demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100)
-    M, d = size(Zmat)
+    nrowZ, d = size(Zmat)
+    Zmat = vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d))
+    M = ones(Int64,1)*nrowZ
     if prevrun == nothing
         # start chain at last N elements of Z
         X = Zmat[end-N+1:end, :]
@@ -12,7 +14,6 @@ function demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, bloc
     end
     # preallocate the chain
     mc = MC(zeros(N,  d, Ngeneration),zeros(N, Ngeneration), X, log_objcurrent)
-
     # print inital values
     if verbose
         print_status(mc, 0)
@@ -20,16 +21,7 @@ function demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, bloc
     # run through generations
     for ig = 1:Ngeneration
         for ic = 1:N
-            Xcurrent, current_logobj = update_blocks(mc.Xcurrent[ic, :], mc.log_objcurrent[ic], Zmat, M, logobj, blockindex, eps_scale, γ, Nblocks)
-            # update in chain
-            mc.chain[ic, :, ig] .= Xcurrent
-            mc.log_obj[ic, ig] = current_logobj
-            mc.Xcurrent[ic, :] .= Xcurrent
-            mc.log_objcurrent[ic] = current_logobj
-        end
-        if mod(ig, K) == 0.
-            Zmat = vcat(Zmat, mc.Xcurrent)
-            M += N
+            runchain!(ic, ig, ig, mc, Zmat, K, M, logobj, blockindex, eps_scale, γ, Nblocks)
         end
         if verbose
             if mod(ig, print_step) == 0.
@@ -59,7 +51,64 @@ function print_status(mc, ig)
     #println("bestpar = $bestpar")
     println("-----------------------")
 end
-#
+
+function runchain!(ic, from, to, mc, Zmat, K, M, logobj, blockindex, eps_scale, γ, Nblocks)
+    for ig = from:to
+        Xcurrent, current_logobj = update_blocks(mc.Xcurrent[ic, :], mc.log_objcurrent[ic], Zmat, M, logobj, blockindex, eps_scale, γ, Nblocks)
+        # update in chain
+        mc.chain[ic, :, ig] .= Xcurrent
+        mc.log_obj[ic, ig] = current_logobj
+        mc.Xcurrent[ic, :] .= Xcurrent
+        mc.log_objcurrent[ic] = current_logobj
+        if mod(ig, K) == 0.
+            Zmat[M[1]+1,:] .= mc.Xcurrent[ic,:]
+            M .= M .+ 1
+        end
+    end
+end
+
+
+"""
+test this
+"""
+function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing)
+    # prep storage etc
+    nrowZ, d = size(Zmat)
+    global Zshared = SharedArray(vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d)))
+    global M = SharedArray(ones(Int64,1)*nrowZ)
+    if prevrun == nothing
+        # start chain at last N elements of Z
+        X = Zshared[M[1]-N+1:M[1], :]
+        # initial obj values
+        log_objcurrent = pmap(logobj, [X[i,:] for i = 1:N])
+    else
+        # start chain at last generation of prevrun
+        X = prevrun.chain[:,:,end]
+        log_objcurrent = prevrun.log_objcurrent[:,end]
+    end
+
+    # preallocate the chain
+    global mc = MCShared(SharedArray(zeros(N,  d, Ngeneration)),SharedArray(zeros(N, Ngeneration)), SharedArray(X), SharedArray(log_objcurrent))
+    passobj(myid(), workers(), [:Zshared,:M], from_mod=DEMC, to_mod=DEMC)
+    passobj(myid(), workers(), [:mc], from_mod=DEMC, to_mod=DEMC)
+
+        # each chain run through generations
+    pmap(ic -> runchain!(ic, 1, Ngeneration, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks), 1:N)
+
+    if prevrun != nothing
+        mc = MC(cat(prevrun.chain, mc.chain, dims=3),cat(prevrun.log_obj, mc.log_obj, dims=2), mc.Xcurrent, mc.log_objcurrent)
+        Zmat =Array(Zshared)
+        rmprocs(workers())
+        return mc, Zmat
+    else
+        Zmat =Array(Zshared)
+        return MC(mc.chain, mc.log_obj, mc.Xcurrent, mc.log_objcurrent), Zmat
+    end
+end
+
+# run full chains independently - pass objs needed and start same number of procs as chains
+
+
 # function demcz_sample_par(logobj, Zmat, N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ; verbose=true, print_to_file=false, file = "./demcstat.txt")
 #     wp = CachingPool(workers())
 #     Mval, d = size(Zmat)
@@ -153,7 +202,7 @@ end
 
 function update_demcz_chain_block(Xcurrent, current_logobj, ib, Zmat, M, logobj, blockindex, eps_scale, γ, Nblocks)
     # generate proposal
-    set = collect(1:M)
+    set = collect(1:M[1])
     i1 = rand(set)
     deleteat!(set, i1)
     i2 = rand(set)
