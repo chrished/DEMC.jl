@@ -1,5 +1,5 @@
-#using DEMC
-include("../src/DEMC.jl")
+using DEMC
+#include("../src/DEMC.jl")
 using Random
 using LinearAlgebra
 using Distributions
@@ -43,7 +43,7 @@ println("\n estimates: ", bhat, "\n dist to true: ", bhat - μ)
 # covariance of estimates
 b, Σb = DEMC.mean_cov_chain(chain_burned, N, Ngen_burned, Npar)
 
-figure_path = "./img/normpdf_serial/"
+figure_path = "../img/normpdf_serial/"
 accept_ratio, Rhat = DEMC.convergence_check(chain_burned, logobj_burned, figure_path; verbose = true)
 
 @test all(Rhat.<1.1)

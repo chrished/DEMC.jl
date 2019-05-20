@@ -1,8 +1,8 @@
 using Distributed
 addprocs(3)
-#using DEMC
+
 @everywhere begin
-    include("./src/DEMC.jl")
+    using DEMC
     using Random
     using LinearAlgebra
     using Distributions
@@ -49,7 +49,7 @@ println("\n estimates: ", bhat, "\n dist to true: ", bhat - μ)
 # covariance of estimates
 b, Σb = DEMC.mean_cov_chain(chain_burned, N, Ngen_burned, Npar)
 
-figure_path = "./img/normpdf_parallel/"
+figure_path = "../img/normpdf_parallel/"
 accept_ratio, Rhat = DEMC.convergence_check(chain_burned, logobj_burned, figure_path; verbose = false)
 
 @test all(Rhat.<1.1)
