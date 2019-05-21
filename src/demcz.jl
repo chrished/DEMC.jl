@@ -1,7 +1,30 @@
 """
-demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100)
 
-Serial run of DEMC chain. At each generation all chains are updated one after the other.
+```julia
+demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100)
+```
+
+Serial run of DEMC chain. At each generation all chains are updated one after the other. Sampling consists of a Differential Evolution (DE) draw from ```Z``` combined with a ```N(0,diag(eps_scale))``` draw.
+
+```N``` - Number of chains (3 is a reasonable number)
+
+```K``` - add current guess to ```Z``` every ```K``` steps (10 is a reasonable number)
+
+```Nblocks``` - Number of Blocks which are sample independently. For efficient sampling the blocks should be uncorrelated, if possible set Nblocks = 1.
+
+```blockindex``` - subset of parameters for each block
+
+```eps_scale``` - Scale of Normal error around DE step
+
+```γ``` - size of DE step, for a normal distribution this should be 2.38
+
+```prevrun``` - ```mc::DEMC.MC``` can be added so the chain starts sampling at the last iteration of the previous chain, then the function returns the concat of the previous and current run
+
+```verbose``` - print current avg logobj and avg parameters
+
+```print_step``` - print every ```print_step``` generations
+
+Returns the Markov Chain ```mc::DEMC.MC``` and ```Zmat::Array{Float64,2}```
 """
 function demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100)
     nrowZ, d = size(Zmat)
