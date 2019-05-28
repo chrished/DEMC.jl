@@ -22,11 +22,10 @@ function demcz_anneal(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, bloc
     if verbose
         print_status(mc, 0)
     end
-    temp(ig) = temperaturefun(ig, Ngeneration, T0, TN)
     # run through generations
     for ig = 1:Ngeneration
         for ic = 1:N
-            runchain!(ic, ig, ig, mc, Zmat, K, M, logobj, blockindex, eps_scale, γ, Nblocks, temp)
+            runchain!(ic, ig, ig, mc, Zmat, K, M, logobj, blockindex, eps_scale, γ, Nblocks, temperaturefun)
         end
         if verbose
             if mod(ig, print_step) == 0.
