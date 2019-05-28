@@ -9,6 +9,7 @@ module DEMC
 
     include("demcz.jl")
     include("utils.jl")
+    include("demcz_anneal.jl")
 
     struct MC
         chain::Array{Float64, 3} # parameter population for all generations
