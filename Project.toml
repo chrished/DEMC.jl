@@ -1,7 +1,7 @@
 name = "DEMC"
 uuid = "4b39d90f-f187-51b0-bd4a-948e5cb76f66"
 authors = ["christoph hedtrich <christophhedtrich@gmail.com>"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Distributed = "8ba89e20-285c-5b6f-9357-94700520ee1b"
