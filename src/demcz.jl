@@ -1,3 +1,6 @@
+function demcz_sample(logobj, Zmat, opts::DEMCopt; prevrun=nothing)
+    return demcz_sample(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun, verbose = opts.verbose, print_step=opts.print_step)
+end
 """
 demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100)
 
@@ -74,11 +77,16 @@ end
 
 
 """
-demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing)
+demcz_sample_par(logobj, Zmat, opts::DEMCopt; sync_every = 1000, prevrun=nothing)
 
 Runs each chain on a separate process - Z is updated simultaenously among all chains running in parallel.
 """
-function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing)
+function demcz_sample_par(logobj, Zmat, opts::DEMCopt; sync_every = 1000, prevrun=nothing)
+    return demcz_sample_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ;sync_every = sync_every, prevrun=prevrun)
+end
+
+
+function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; sync_every = 1000, prevrun=nothing)
     # prep storage etc
     nrowZ, d = size(Zmat)
     global Zshared = SharedArray(vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d)))
@@ -96,20 +104,27 @@ function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
 
     # preallocate the chain
     global mc = MCShared(SharedArray(zeros(N,  d, Ngeneration)),SharedArray(zeros(N, Ngeneration)), SharedArray(X), SharedArray(log_objcurrent))
-    passobj(myid(), workers(), [:Zshared,:M], from_mod=DEMC, to_mod=DEMC)
+    global Ngenerationg = Ngeneration
+    # define on all cores
+    passobj(myid(), workers(), [:Zshared,:M, :Ngenerationg], from_mod=DEMC, to_mod=DEMC)
     passobj(myid(), workers(), [:mc], from_mod=DEMC, to_mod=DEMC)
-
-    # each chain run through generations
-    pmap(ic -> runchain!(ic, 1, Ngeneration, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks), 1:N)
+    # split up generations
+    Nsets = ceil(Ngeneration/sync_every)
+    splitgens = [(Int((i-1)*sync_every+1),Int(min(i*sync_every, Ngeneration)))  for i = 1:Nsets]
+    global from = 0
+    global to = 0
+    for set in splitgens
+        global from = set[1]
+        global to = set[2]
+        passobj(myid(), workers(), [:from, :to], from_mod=DEMC, to_mod=DEMC)
+        pmap(ic -> runchain!(ic, from, to, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks), 1:N)
+    end
 
     if prevrun != nothing
-        mc = MC(cat(prevrun.chain, mc.chain, dims=3),cat(prevrun.log_obj, mc.log_obj, dims=2), mc.Xcurrent, mc.log_objcurrent)
-        Zmat =Array(Zshared)
-        rmprocs(workers())
+        mc = MCShared(cat(prevrun.chain, mc.chain, dims=3),cat(prevrun.log_obj, mc.log_obj, dims=2), mc.Xcurrent, mc.log_objcurrent)
         return mc, Zmat
     else
-        Zmat =Array(Zshared)
-        return MC(mc.chain, mc.log_obj, mc.Xcurrent, mc.log_objcurrent), Zmat
+        return mc, Zmat
     end
 end
 
