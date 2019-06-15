@@ -24,9 +24,24 @@ A = rand(5,5)
 distr = MvNormal(μ, Σ)
 logobj(mean) = logpdf(distr, mean)
 Zinit = rand(distr, 100)'
-# sample from distr using standard options (which are arbitrary)
-mc, Z = DEMC.demcz_sample(logobj, Zinit)
-# see "/test/example_normpdf.jl" for an example with full options and convergen checks!
+# sample from distr using standard options
+opts = DEMC.demcopt(ndim)
+mc, Z = DEMC.demcz_sample(logobj, Zinit, opts)
+# see tests for further examples (also annealing and parallel)
+
+# options you can set
+# fieldnames(typeof(opts))
+# :N - number of chains
+# :K - add current draw to Z every K steps
+# :Ngeneration - total number of steps
+# :Nblocks - number of blocks
+# :blockindex - subset of parameters in each block
+# :eps_scale - scale of random draw around DE step
+# :γ - scale of DE step (2.38 for normal distribution)
+# :verbose - print avg value and avg parameters of chain  
+# :print_step - print every ... steps
+# :T0 - initial temperature (only for annealing)
+# :TN - final temperature (only for annealing)
 ```
 ## References
 

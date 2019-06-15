@@ -1,5 +1,19 @@
+# addprocs, same fun everywhere!
 using Distributed
-addprocs(3)
+while nprocs()<4
+    addprocs(1)
+end
+using Pkg
+@everywhere using Pkg
+@everywhere Pkg.activate(".")
+using DEMC
+
+using DEMC
+using Random
+using LinearAlgebra
+using Distributions
+using SharedArrays
+using ParallelDataTransfer
 
 @everywhere begin
     using DEMC
@@ -10,6 +24,7 @@ addprocs(3)
     Random.seed!(31953150+myid())
     using ParallelDataTransfer
 end
+
 # set up target distribution: Multivariate Normal
 ndim = 5 # Number of dimensions
 μ = rand(ndim) # mean of each dimension
@@ -22,20 +37,17 @@ passobj(myid(), workers(),[:μ, :Σ, :distr])
 @everywhere log_obj(mean) = logpdf(distr, mean)
 
 # set up of DEMCz chain
-Npar = length(μ)
-blockindex = [1:Npar] # parameter blocks: here choose all parameters to be updated simultaenously
-Nblocks = length(blockindex)
-eps_scale = 1e-5*ones(Npar) # scale of random error around DE update
-γ = 2.38 # scale of DE update, 2.38 is the "optimal" number for a normal distribution
-N = nworkers() # number of chains
-K = 10 # every K steps add current N draws to Z
-Z = randn((10*ndim, ndim)) # initial distribution (completely off to make a difficult test case)
-
+opts = DEMC.demcopt(ndim)
+opts.blockindex = [1:ndim] # parameter blocks: here choose all parameters to be updated simultaenously
+opts.Nblocks = length(opts.blockindex)
+opts.eps_scale = 1e-5*ones(ndim) # scale of random error around DE update
+opts.γ = 2.38 # scale of DE update, 2.38 is the "optimal" number for a normal distribution
+opts.N = nworkers() # number of chains
+opts.K = 10 # every K steps add current N draws to Z
 # Number of iterations in Chain
-Ngen = 10000
-
+opts.Ngeneration = 10000
 Z = randn((10*ndim, ndim)) # initial distribution (completely off to make a difficult test case)
-mc, Z = DEMC.demcz_sample_par(log_obj, Z, N, K, Ngen, Nblocks, blockindex, eps_scale, γ; prevrun=nothing)
+mc, Z = DEMC.demcz_sample_par(log_obj, Z,opts; prevrun=nothing)
 
 # drop first half of chain
 Ntot = size(mc.chain,3)
@@ -43,11 +55,11 @@ keep = Int(Ntot-round(Ngen/2))+1:Ntot
 Ngen_burned = length(keep)
 chain_burned = mc.chain[:,:,keep]
 logobj_burned = mc.log_obj[:, keep]
-chainflat = DEMC.flatten_chain(chain_burned, N, Ngen_burned, Npar)'
+chainflat = DEMC.flatten_chain(chain_burned, opts.N, Ngen_burned, Npar)'
 bhat = mean(chainflat,dims=1)[:]
 println("\n estimates: ", bhat, "\n dist to true: ", bhat - μ)
 # covariance of estimates
-b, Σb = DEMC.mean_cov_chain(chain_burned, N, Ngen_burned, Npar)
+b, Σb = DEMC.mean_cov_chain(chain_burned, opts.N, Ngen_burned, Npar)
 
 figure_path = "../img/normpdf_parallel/"
 accept_ratio, Rhat = DEMC.convergence_check(chain_burned, logobj_burned, figure_path; verbose = false)

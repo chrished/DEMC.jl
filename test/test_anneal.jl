@@ -29,7 +29,7 @@ bestval = maximum(mc.log_obj)
 bestel = findfirst(mc.log_obj.==bestval)
 bestpar = mc.chain[bestel[1], :, bestel[2]]
 
-@test abs(bestval)<1e-1
+@test abs(bestval)>-1e-1
 
 #bestvals = [maximum(mc.log_obj[:, ig]) for ig = 1:Ngen]
 #DEMC.plot(1:Ngen, bestvals)

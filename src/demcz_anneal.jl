@@ -2,7 +2,11 @@ function tempbaseline(ig, Ng, T0, TN)
      return T0*(TN/T0)^(ig/Ng)
 end
 
-function demcz_anneal(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100, temperaturefun::Function = tempbaseline, T0 = 3, TN = 1e-3)
+function demcz_anneal(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline)
+    return demcz_anneal(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun, verbose = opts.verbose, print_step=opts.print_step, temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN)
+end
+
+function demcz_anneal(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100, temperaturefun::Function = tempbaseline, T0 = 3, TN = 0.)
     nrowZ, d = size(Zmat)
     Zmat = vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d))
     M = ones(Int64,1)*nrowZ
@@ -56,6 +60,9 @@ function runchain!(ic, from, to, mc, Zmat, K, M, logobj, blockindex, eps_scale, 
     end
 end
 
+function demcz_anneal_par(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline, sync_every=1000)
+    return demcz_anneal_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun,  temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN, sync_every=sync_every)
+end
 
 function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, T0 = 3, TN = 1e-3, sync_every = 1000, temperaturefun::Function = tempbaseline)
     # prep storage etc

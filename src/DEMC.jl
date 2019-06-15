@@ -7,10 +7,6 @@ module DEMC
     using ParallelDataTransfer
     gr()
 
-    include("demcz.jl")
-    include("utils.jl")
-    include("demcz_anneal.jl")
-
     struct MC
         chain::Array{Float64, 3} # parameter population for all generations
         log_obj::Array{Float64, 2} # log obj along the chain
@@ -24,5 +20,28 @@ module DEMC
         Xcurrent::SharedArray{Float64, 2} # population
         log_objcurrent::SharedArray{Float64, 1} # log obj values
     end
+
+    mutable struct DEMCopt
+        N::Int
+        K::Int
+        Ngeneration::Int
+        Nblocks::Int
+        blockindex::Array
+        eps_scale::Array{Float64, 1}
+        γ::Float64
+        verbose::Bool
+        print_step::Int
+        T0::Float64
+        TN::Float64
+    end
+
+    function demcopt(Npar; N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:Npar], eps_scale=1e-4*ones(Npar), γ=2.38, verbose = true, print_step=100, T0 = 3, TN = 1e-3)
+        return DEMCopt(N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ, verbose, print_step, T0, TN)
+    end
+
+
+    include("demcz.jl")
+    include("utils.jl")
+    include("demcz_anneal.jl")
 
 end # module
