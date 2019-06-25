@@ -102,7 +102,6 @@ function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
 
     if prevrun != nothing
         mc = MCShared(cat(prevrun.chain, mc.chain, dims=3),cat(prevrun.log_obj, mc.log_obj, dims=2), mc.Xcurrent, mc.log_objcurrent)
-        rmprocs(workers())
         return mc, Zmat
     else
         return mc, Zmat
