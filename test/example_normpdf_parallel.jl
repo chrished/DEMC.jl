@@ -25,7 +25,7 @@ using ParallelDataTransfer
 end
 
 # set up target distribution: Multivariate Normal
-ndim = 20 # Number of dimensions
+ndim = 10 # Number of dimensions
 μ = rand(ndim) # mean of each dimension
 A = rand(ndim, ndim)
 Σ = A'*A .+ diagm(0 => 2*ones(ndim)) # variance covariance matrix
@@ -44,9 +44,9 @@ opts.γ = 2. # scale of DE update, 2.38 is the "optimal" number for a normal dis
 opts.N = nworkers() # number of chains
 opts.K = 10 # every K steps add current N draws to Z
 # Number of iterations in Chain
-opts.Ngeneration = 50000
+opts.Ngeneration = 100_000
 opts.autostop = :Rhat
-opts.autostop_Rhat = 1.1
+opts.autostop_Rhat = 1.075
 
 Z = randn((10*ndim, ndim)) # initial distribution (completely off to make a difficult test case)
 mc, Z = DEMC.demcz_sample_par(log_obj, Z,opts; prevrun=nothing, sync_every = 2000)
@@ -67,7 +67,7 @@ b, Σb = DEMC.mean_cov_chain(chain_burned, opts.N, Ngen_burned, ndim)
 println("\n estimates: ", b, "\n dist to true: ", b - μ)
 
 figure_path = pwd()*"/img/normpdf_parallel/"
-accept_ratio, Rhat = DEMC.convergence_check(chain_burned, logobj_burned, figure_path; verbose = true)
+accept_ratio, Rhat = DEMC.convergence_check(chain_burned, logobj_burned, figure_path; verbose = false)
 
 @test all(Rhat.<1.1)
 @test all(accept_ratio.> 0.1)
@@ -75,8 +75,8 @@ accept_ratio, Rhat = DEMC.convergence_check(chain_burned, logobj_burned, figure_
 
 rmprocs(workers())
 
-sample = [rand(distr) for s=1:100_000]
-llsample = [logpdf(distr, sample[s]) for s=1:100_000]
-DEMC.histogram(logobj_burned[:], normalize=true)
-DEMC.histogram!(llsample, normalize=true)
-DEMC.savefig(figure_path*"lpdf_histogram.png")
+# sample = [rand(distr) for s=1:100_000]
+# llsample = [logpdf(distr, sample[s]) for s=1:100_000]
+# DEMC.histogram(logobj_burned[:], normalize=true)
+# DEMC.histogram!(llsample, normalize=true)
+# DEMC.savefig(figure_path*"lpdf_histogram.png")
