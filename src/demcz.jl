@@ -39,7 +39,7 @@ function demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, bloc
         if autostop == :Rhat
             if mod(ig, autostop_every) == 0
                 Rhat = Rhat_gelman(mc.chain[:,:, ig-autostop_every+1:ig], N, autostop_every, d)
-                accept_ratio = sum(diff(mc.log_obj, dims = 2).!=0., dims = 2)./ (autostop_every-1)
+                accept_ratio = sum(diff(mc.log_obj[ig-autostop_every+1:ig], dims = 2).!=0., dims = 2)./ (autostop_every-1)
                 if (maximum(Rhat) < autostop_Rhat)
                     if mean(accept_ratio) < 0.1
                         println("Warning: accept ratio below 10% on average")
@@ -99,11 +99,11 @@ demcz_sample_par(logobj, Zmat, opts::DEMCopt; sync_every = 1000, prevrun=nothing
 Runs each chain on a separate process - Z is updated simultaenously among all chains running in parallel.
 """
 function demcz_sample_par(logobj, Zmat, opts::DEMCopt; sync_every = 1000, prevrun=nothing)
-    return demcz_sample_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ;sync_every = sync_every, prevrun=prevrun)
+    return demcz_sample_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ;sync_every = sync_every, prevrun=prevrun,  autostop=opts.autostop, autostop_Rhat=opts.autostop_Rhat)
 end
 
 
-function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; sync_every = 1000, prevrun=nothing)
+function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; sync_every = 1000, prevrun=nothing, autostop=:Rhat, autostop_Rhat=1.1)
     # prep storage etc
     nrowZ, d = size(Zmat)
     global Zshared = SharedArray(vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d)))
@@ -135,6 +135,22 @@ function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
         global to = set[2]
         passobj(myid(), workers(), [:from, :to], from_mod=DEMC, to_mod=DEMC)
         pmap(ic -> runchain!(ic, from, to, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks), 1:N)
+        if autostop == :Rhat
+            Rhat = Rhat_gelman(mc.chain[:,:, from:to], N, to-from, d)
+            accept_ratio = sum(diff(mc.log_obj, dims = 2).!=0., dims = 2)./ (sync_every-1)
+            if (maximum(Rhat) < autostop_Rhat)
+                if mean(accept_ratio) < 0.1
+                    println("Warning: accept ratio below 10% on average")
+                end
+                mc = MC(mc.chain[:,:,1:to],  mc.log_obj[:, 1:to], mc.Xcurrent, mc.log_objcurrent)
+                if prevrun != nothing
+                    mc = MCShared(cat(prevrun.chain, mc.chain, dims=3),cat(prevrun.log_obj, mc.log_obj, dims=2), mc.Xcurrent, mc.log_objcurrent)
+                    return mc, Zshared[1:M[1],:]
+                else
+                    return mc, Zshared[1:M[1],:]
+                end
+            end
+        end
     end
 
     if prevrun != nothing
