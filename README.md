@@ -11,7 +11,10 @@
 
 
 ## Use Cases
-* useful for simulating distributions that are **not easily differentiable**, have moderate dimensionality (>1, <250), and dimensions are potentially **highly correlated**. One example is to simulate parameter distributions in indirect inference estimators.
+* useful for simulating distributions that are **not easily differentiable**, have moderate dimensionality (>1, <5?), and dimensions are potentially **highly correlated**. One example is to simulate parameter distributions in indirect inference estimators.
+
+* moderate dimensionality is somewhat unclear, tests work alright with 10-20 dimensions, but behavior deteriorates. See https://mc-stan.org/users/documentation/case-studies/curse-dims.html
+
 
 ## Sample Usage
 ```julia
