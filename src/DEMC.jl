@@ -33,10 +33,13 @@ module DEMC
         print_step::Int
         T0::Float64
         TN::Float64
+        autostop::Symbol
+        autostop_every::Int
+        autostop_Rhat
     end
 
-    function demcopt(Npar; N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:Npar], eps_scale=1e-4*ones(Npar), γ=2.38, verbose = true, print_step=100, T0 = 3, TN = 1e-3)
-        return DEMCopt(N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ, verbose, print_step, T0, TN)
+    function demcopt(Npar; N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:Npar], eps_scale=1e-4*ones(Npar), γ=2.38, verbose = true, print_step=100, T0 = 3, TN = 1e-3, autostop = :Rhat, autostop_every = 1000, autostop_Rhat=1.05)
+        return DEMCopt(N, K, Ngeneration, Nblocks, blockindex, eps_scale, γ, verbose, print_step, T0, TN, autostop, autostop_every, autostop_Rhat)
     end
 
 
