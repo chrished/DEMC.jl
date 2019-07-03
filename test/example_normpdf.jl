@@ -44,7 +44,7 @@ println("\n estimates: ", bhat, "\n dist to true: ", bhat - μ)
 b, Σb = DEMC.mean_cov_chain(chain_burned, N, Ngen_burned, Npar)
 
 figure_path = "../img/normpdf_serial/"
-accept_ratio, Rhat = DEMC.convergence_check(chain_burned, logobj_burned, figure_path; verbose = true)
+accept_ratio, Rhat = DEMC.convergence_check(chain_burned, logobj_burned, figure_path; verbose = false)
 
 @test all(Rhat.<1.1)
 @test all(accept_ratio.> 0.1)

@@ -1,12 +1,13 @@
+using Pkg; Pkg.activate(pwd())
 using DEMC
 using Random
 using LinearAlgebra
 using Distributions
-Random.seed!(31953150)
+Random.seed!(319531501)
 
 # generate data
-nobs = 100
-npar = 3
+nobs = 1000
+npar = 25
 Σ = ones(npar, npar)
 for i = 1:npar
     for iprime = 1:i
@@ -24,41 +25,52 @@ for iobs = 1:nobs
     X[iobs, 2:end] .= rand(DataDistribution)
 end
 
-β = rand(npar+1)
+β = 1 .+ rand(npar+1)*3
 y = X*β + randn(nobs)
 
 # log objective function - for correct std errors need to use optimal weights
 log_obj(b) = -0.5 * sum((y.-X*b).^2)
 
+
 # set up of DEMCz chain
-Npar = length(β)
-ndim = Npar
-blockindex = [1:Npar] # parameter blocks: here choose all parameters to be updated simultaenously
-Nblocks = length(blockindex)
-eps_scale = 1e-5*ones(Npar) # scale of random error around DE update
-γ = 2.38 # scale of DE update, 2.38 is the "optimal" number for a normal distribution
-N = 3
-K = 10
+ndim = length(β)
+opts = DEMC.demcopt(ndim)
+opts.blockindex = [1:ndim] # parameter blocks: here choose all parameters to be updated simultaenously
+opts.Nblocks = length(opts.blockindex)
+opts.eps_scale = 1e-5*ones(ndim) # scale of random error around DE update
+opts.γ = 2. # scale of DE update, 2.38 is the "optimal" number for a normal distribution
+opts.N = 5 # number of chains
+opts.K = 10 # every K steps add current N draws to Z
+# Number of iterations in Chain
+opts.Ngeneration = 100000
+opts.autostop = :Rhat
+opts.autostop_every = 2000
+opts.autostop_Rhat = 1.1
+opts.print_step = 1000
+opts.verbose = false
+
 Z = randn((10*ndim, ndim))
 
-# Number of iterations in Chain
-Ngen = 2500
-mc, Z = DEMC.demcz_sample(log_obj, Z, N, K, Ngen, Nblocks, blockindex, eps_scale, γ; verbose =false)
+# run chain
+mc, Z = DEMC.demcz_sample(log_obj, Z, opts)
 
 # drop first half of chain
 Ntot = size(mc.chain,3)
-keep = Int(Ntot-round(Ngen/2))+1:Ntot
+keep = Int(Ntot-opts.autostop_every)+1:Ntot
 Ngen_burned = length(keep)
 chain_burned = mc.chain[:,:,keep]
 chainflat = DEMC.flatten_chain(chain_burned, N, Ngen_burned, Npar)'
-bhat = mean(chainflat,dims=1)[:]
-println("\n estimates: ", bhat, "\n dist to true: ", bhat - β)
-# covariance of estimates
-b, Σb = DEMC.mean_cov_chain(chain_burned, N, Ngen_burned, Npar)
-# correct std errors for incorrect weighting matrix
 
+# covariance of estimates
+b, Σb = DEMC.mean_cov_chain(chain_burned)
+# correct std errors for incorrect weighting matrix
 # OLS
 bols = (X'*X)\(X'*y)
 ui = y .- X*bols
 s2hat = (1/(nobs-npar)) * sum(ui.^2)
 Σols = inv(X'X)*s2hat
+
+# difference simulated to OLS
+println("\n MCMC estimates: ", b, "\n dist to OLS: ", b .- bols)
+
+accept_ratio, Rhat = DEMC.convergence_check(mc.chain, mc.log_obj, "none"; verbose = false, parnames = [])
