@@ -45,6 +45,10 @@ mc, Z = DEMC.demcz_sample(logobj, Zinit, opts)
 # :print_step - print every ... steps
 # :T0 - initial temperature (only for annealing)
 # :TN - final temperature (only for annealing)
+# :autostop - :Rhat is only possibility so far (stop when Gelman-Rubin Rhat falls below a threshold)
+# :autostop_every - checks autostop criterion every autostop_every generations (only for serial computation, in parallel mode checks when chains sync
+# :autostop_Rhat - maximum Rhat to trigger autostop (should be close to 1, e.g. below 1.1)
+
 ```
 ## References
 
