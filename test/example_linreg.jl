@@ -55,7 +55,7 @@ Z = randn((10*ndim, ndim))
 mc, Z = DEMC.demcz_sample(log_obj, Z, opts)
 
 # drop first half of chain
-Ntot = size(mc.chain,3)
+N, Npar, Ntot = size(mc.chain)
 keep = Int(Ntot-opts.autostop_every)+1:Ntot
 Ngen_burned = length(keep)
 chain_burned = mc.chain[:,:,keep]
