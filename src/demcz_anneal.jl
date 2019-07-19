@@ -2,6 +2,15 @@ function tempbaseline(ig, Ng, T0, TN)
      return T0*(TN/T0)^(ig/Ng)
 end
 
+function print_status_anneal(mc, ig)
+    bestval = maximum(mc.log_obj[:, 1:ig])
+
+    println("-----------------------")
+    println("iteration $ig")
+    println("bestval = $bestval")
+    println("-----------------------")
+end
+
 function demcz_anneal(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline)
     return demcz_anneal(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun, verbose = opts.verbose, print_step=opts.print_step, temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN)
 end
@@ -33,7 +42,7 @@ function demcz_anneal(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, bloc
         end
         if verbose
             if mod(ig, print_step) == 0.
-                print_status(mc, ig)
+                print_status_anneal(mc, to)
             end
         end
     end
@@ -98,6 +107,9 @@ function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
         global to = set[2]
         passobj(myid(), workers(), [:from, :to], from_mod=DEMC, to_mod=DEMC)
         pmap(ic -> runchain!(ic, from, to, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks, temperaturefun; T0=T0, TN=TN, Ngen=Ngeneration), 1:N)
+        if verbose
+            print_status_anneal(mc, to)
+        end
     end
 
     if prevrun != nothing
