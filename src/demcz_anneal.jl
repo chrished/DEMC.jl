@@ -79,8 +79,8 @@ function runchain!(ic, from, to, mc, Zmat, K, M, logobj, blockindex, eps_scale, 
     end
 end
 
-function demcz_anneal_par(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline, sync_every=1000)
-    return demcz_anneal_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun,  temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN, sync_every=sync_every, verbose = opts.verbose, adaptγ = Dict("adapt"=>true,"minγ"=>0.1, "maxγ"=> 4.0, "adapt_every"=>500))
+function demcz_anneal_par(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline, sync_every=1000, adaptγ= Dict("adapt"=>true,"minγ"=>0.1, "maxγ"=> 4.0, "adapt_every"=>500))
+    return demcz_anneal_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun,  temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN, sync_every=sync_every, verbose = opts.verbose, adaptγ =adaptγ)
 end
 
 function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, T0 = 3, TN = 1e-3, sync_every = 1000, temperaturefun::Function = tempbaseline, verbose=true, adaptγ = Dict("adapt"=>true,"minγ"=>0.1, "maxγ"=> 4.0, "adapt_every"=>500))
