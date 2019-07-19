@@ -1,11 +1,11 @@
 module DEMC
     using LinearAlgebra
     using Statistics
-    using Plots
+    # using Plots
     using Distributed
     using SharedArrays
     using ParallelDataTransfer
-    gr()
+    #gr()
 
     struct MC
         chain::Array{Float64, 3} # parameter population for all generations

@@ -11,11 +11,11 @@ function print_status_anneal(mc, ig)
     println("-----------------------")
 end
 
-function demcz_anneal(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline)
-    return demcz_anneal(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun, verbose = opts.verbose, print_step=opts.print_step, temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN)
+function demcz_anneal(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline, adaptγ = Dict("adapt"=>true,"minγ"=>0.1, "maxγ"=> 4.0, "adapt_every"=>500))
+    return demcz_anneal(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun, verbose = opts.verbose, print_step=opts.print_step, temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN, adaptγ=adaptγ)
 end
 
-function demcz_anneal(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100, temperaturefun::Function = tempbaseline, T0 = 3, TN = 0.)
+function demcz_anneal(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, verbose = true, print_step=100, temperaturefun::Function = tempbaseline, T0 = 3, TN = 0., adaptγ = Dict("adapt"=>true,"minγ"=>0.1, "maxγ"=> 4.0, "adapt_every"=>500))
     nrowZ, d = size(Zmat)
     Zmat = vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d))
     M = ones(Int64,1)*nrowZ
@@ -45,6 +45,16 @@ function demcz_anneal(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, bloc
                 print_status_anneal(mc, to)
             end
         end
+        if adaptγ["adapt"]
+            if mod(ig, adaptγ["adapt_every"]) == 0.
+                accept_ratio = sum(diff(mc.log_obj[:, ig- adaptγ["adapt_every"]+1:ig], dims=2).!=0.)/(N*adaptγ["adapt_every"])
+                if accept_ratio < 0.1
+                    γ = max(adaptγ["minγ"], γ*0.5)
+                elseif accept_ratio >0.5
+                    γ = min(adaptγ["maxγ"], γ*1.5)
+                end
+            end
+        end
     end
 
     if prevrun != nothing
@@ -70,10 +80,10 @@ function runchain!(ic, from, to, mc, Zmat, K, M, logobj, blockindex, eps_scale, 
 end
 
 function demcz_anneal_par(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline, sync_every=1000)
-    return demcz_anneal_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun,  temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN, sync_every=sync_every, verbose = opts.verbose)
+    return demcz_anneal_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun,  temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN, sync_every=sync_every, verbose = opts.verbose, adaptγ = Dict("adapt"=>true,"minγ"=>0.1, "maxγ"=> 4.0, "adapt_every"=>500))
 end
 
-function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, T0 = 3, TN = 1e-3, sync_every = 1000, temperaturefun::Function = tempbaseline, verbose=true)
+function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, T0 = 3, TN = 1e-3, sync_every = 1000, temperaturefun::Function = tempbaseline, verbose=true, adaptγ = Dict("adapt"=>true,"minγ"=>0.1, "maxγ"=> 4.0, "adapt_every"=>500))
     # prep storage etc
     nrowZ, d = size(Zmat)
     global Zshared = SharedArray(vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d)))
@@ -102,13 +112,22 @@ function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
     splitgens = [(Int((i-1)*sync_every+1),Int(min(i*sync_every, Ngeneration)))  for i = 1:Nsets]
     global from = 0
     global to = 0
+    global γpass = γ
     for set in splitgens
         global from = set[1]
         global to = set[2]
-        passobj(myid(), workers(), [:from, :to], from_mod=DEMC, to_mod=DEMC)
-        pmap(ic -> runchain!(ic, from, to, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks, temperaturefun; T0=T0, TN=TN, Ngen=Ngeneration), 1:N)
+        passobj(myid(), workers(), [:from, :to, :γpass], from_mod=DEMC, to_mod=DEMC)
+        pmap(ic -> runchain!(ic, from, to, mc, Zshared, K, M, logobj, blockindex, eps_scale, γpass, Nblocks, temperaturefun; T0=T0, TN=TN, Ngen=Ngeneration), 1:N)
         if verbose
             print_status_anneal(mc, to)
+        end
+        if adaptγ["adapt"]
+            accept_ratio = sum(diff(mc.log_obj[:, from:to], dims=2).!=0.)/(N*(to-from))
+            if accept_ratio < 0.1
+                γpass = max(adaptγ["minγ"], γpass*0.5)
+            elseif accept_ratio >0.5
+                γpass = min(adaptγ["maxγ"], γpass*1.5)
+            end
         end
     end
 

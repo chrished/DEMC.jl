@@ -60,23 +60,23 @@ function convergence_check(chain, log_obj, Npop, Ngeneration, Npar, figure_path;
     # acceptance ratio
     accept_ratio = sum(diff(log_obj, dims = 2).!=0., dims = 2)./ (Ngeneration-1)
     # plot the trace of the obj function value of the chains, clean out extreme values
-    if verbose
-        p_trace = plot(log_obj')
-        savefig(p_trace, string(figure_path, "trace_logobj.png"))
-
-        traceplots = []
-        for par in 1:Npar
-            append!(traceplots, [plot(reshape(chain[:, par , :], Npop, Ngeneration)', title=parnames[par])])
-        end
-        for par in 1:Npar
-            par_trace = plot(traceplots[par])
-            savefig(par_trace, string(figure_path, "trace_par_", par, ".png"))
-        end
-        for par in 1:Npar
-            hi = histogram(chain[:, par , :][:], nbins = 33, normed=true)
-            savefig(hi, string(figure_path, "hist_par_", par, ".png"))
-        end
-    end
+    # if verbose
+    #     p_trace = plot(log_obj')
+    #     savefig(p_trace, string(figure_path, "trace_logobj.png"))
+    #
+    #     traceplots = []
+    #     for par in 1:Npar
+    #         append!(traceplots, [plot(reshape(chain[:, par , :], Npop, Ngeneration)', title=parnames[par])])
+    #     end
+    #     for par in 1:Npar
+    #         par_trace = plot(traceplots[par])
+    #         savefig(par_trace, string(figure_path, "trace_par_", par, ".png"))
+    #     end
+    #     for par in 1:Npar
+    #         hi = histogram(chain[:, par , :][:], nbins = 33, normed=true)
+    #         savefig(hi, string(figure_path, "hist_par_", par, ".png"))
+    #     end
+    # end
 
     # Rhat Gelman
     Rhat = Rhat_gelman(chain, Npop, Ngeneration, Npar)

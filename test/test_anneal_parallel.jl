@@ -13,7 +13,7 @@ using DEMC
 @everywhere using Random
 @everywhere Random.seed!(31953150 + myid())
 # set up target distribution: Multivariate Normal
-ndim = 5 # Number of dimensions
+ndim = 30 # Number of dimensions
 μ = rand(ndim) # mean of each dimension
 passobj(myid(), workers(), :μ)
 # log objective function
@@ -30,14 +30,14 @@ opts.γ = 2.38 # scale of DE update, 2.38 is the "optimal" number for a normal d
 opts.N = nworkers() # number of chains
 opts.K = 10 # every K steps add current N draws to Z
 # Number of iterations in Chain
-opts.Ngeneration = 2000
+opts.Ngeneration = 20_000
 opts.TN = 0.0
-opts.T0 = 2.0
+opts.T0 = 5.0
 
-Z = randn((10*Npar, Npar)) # initial distribution (completely off to make a difficult test case)
+Z = randn((10*Npar, Npar))*10 # initial distribution (completely off to make a difficult test case)
 
 # Number of iterations in Chain
-mc, Z = DEMC.demcz_anneal_par(log_obj, Z, opts; sync_every=1000)
+mc, Z = DEMC.demcz_anneal_par(log_obj, Z, opts; sync_every=500)
 
 # check best element
 bestval, bestel = findmax(mc.log_obj)

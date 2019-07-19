@@ -1,11 +1,11 @@
-using DEMC
-#include("../src/DEMC.jl")
+#using DEMC
+include("../src/DEMC.jl")
 using Random
 using LinearAlgebra
 using Distributions
 Random.seed!(31953150)
 # set up target distribution: Multivariate Normal
-ndim = 5 # Number of dimensions
+ndim = 10 # Number of dimensions
 μ = rand(ndim) # mean of each dimension
 # log objective function
 log_obj(mean) = -sum((mean.-μ).^2)
@@ -21,8 +21,8 @@ K = 10 # every K steps add current N draws to Z
 Z = randn((10*ndim, ndim)) # initial distribution (completely off to make a difficult test case)
 
 # Number of iterations in Chain
-Ngen = 2000
-mc, Z = DEMC.demcz_anneal(log_obj, Z, N, K, Ngen, Nblocks, blockindex, eps_scale, γ; verbose=false, TN = 1e-3, T0 = 2)
+Ngen = 5000
+mc, Z = DEMC.demcz_anneal(log_obj, Z, N, K, Ngen, Nblocks, blockindex, eps_scale, γ; verbose=false, TN = 1e-4, T0 = 2)
 
 # check best element
 bestval = maximum(mc.log_obj)
