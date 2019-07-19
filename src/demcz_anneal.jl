@@ -70,10 +70,10 @@ function runchain!(ic, from, to, mc, Zmat, K, M, logobj, blockindex, eps_scale, 
 end
 
 function demcz_anneal_par(logobj, Zmat, opts::DEMCopt; prevrun=nothing, temperaturefun::Function = tempbaseline, sync_every=1000)
-    return demcz_anneal_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun,  temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN, sync_every=sync_every)
+    return demcz_anneal_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ; prevrun=prevrun,  temperaturefun = temperaturefun, T0 = opts.T0, TN = opts.TN, sync_every=sync_every, verbose = opts.verbose)
 end
 
-function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, T0 = 3, TN = 1e-3, sync_every = 1000, temperaturefun::Function = tempbaseline)
+function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; prevrun=nothing, T0 = 3, TN = 1e-3, sync_every = 1000, temperaturefun::Function = tempbaseline, verbose=true)
     # prep storage etc
     nrowZ, d = size(Zmat)
     global Zshared = SharedArray(vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d)))
