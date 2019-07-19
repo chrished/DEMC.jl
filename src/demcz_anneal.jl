@@ -53,7 +53,7 @@ function runchain!(ic, from, to, mc, Zmat, K, M, logobj, blockindex, eps_scale, 
         mc.log_obj[ic, ig] = current_logobj
         mc.Xcurrent[ic, :] .= Xcurrent
         mc.log_objcurrent[ic] = current_logobj
-        if mod(ig, K) == 0.
+        if mod(ig, K) == 0
             Zmat[M[1]+1,:] .= mc.Xcurrent[ic,:]
             M .= M .+ 1
         end
@@ -102,9 +102,9 @@ function demcz_anneal_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
 
     if prevrun != nothing
         mc = MCShared(cat(prevrun.chain, mc.chain, dims=3),cat(prevrun.log_obj, mc.log_obj, dims=2), mc.Xcurrent, mc.log_objcurrent)
-        return mc, Zmat
+        return mc, Zshared
     else
-        return mc, Zmat
+        return mc, Zshared
     end
 end
 
