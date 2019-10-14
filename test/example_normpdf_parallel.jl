@@ -1,6 +1,6 @@
 # addprocs, same fun everywhere!
 using Distributed
-while nprocs()<4
+while nworkers()<4
     addprocs(1)
 end
 using Pkg
@@ -49,11 +49,11 @@ opts.autostop = :Rhat
 opts.autostop_Rhat = 1.075
 
 Z = randn((10*ndim, ndim)) # initial distribution (completely off to make a difficult test case)
-mc, Z = DEMC.demcz_sample_par(log_obj, Z,opts; prevrun=nothing, sync_every = 2000)
+mc, Z = DEMC.demcz_sample_par(log_obj, Z,opts; prevrun=nothing, sync_every = 5000, workerpool=CachingPool(workers()))
 
 # drop first half of chain
 Ntot = size(mc.chain,3)
-Nburn = 10000
+Nburn = 30000
 if Nburn >= round(Ntot/2)+1
     Nburn = Int(round(Ntot/2))
 end

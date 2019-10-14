@@ -98,12 +98,12 @@ demcz_sample_par(logobj, Zmat, opts::DEMCopt; sync_every = 1000, prevrun=nothing
 
 Runs each chain on a separate process - Z is updated simultaenously among all chains running in parallel.
 """
-function demcz_sample_par(logobj, Zmat, opts::DEMCopt; sync_every = 1000, prevrun=nothing)
-    return demcz_sample_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ;sync_every = sync_every, prevrun=prevrun,  autostop=opts.autostop, autostop_Rhat=opts.autostop_Rhat, verbose=opts.verbose)
+function demcz_sample_par(logobj, Zmat, opts::DEMCopt; sync_every = 1000, prevrun=nothing, workerpool = CachingPool(workers()))
+    return demcz_sample_par(logobj, Zmat, opts.N, opts.K, opts.Ngeneration, opts.Nblocks, opts.blockindex, opts.eps_scale, opts.γ;sync_every = sync_every, prevrun=prevrun,  autostop=opts.autostop, autostop_Rhat=opts.autostop_Rhat, verbose=opts.verbose, workerpool=workerpool)
 end
 
 
-function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; sync_every = 1000, prevrun=nothing, autostop=:Rhat, autostop_Rhat=1.1, verbose=true)
+function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, blockindex=[1:size(Zmat,2)], eps_scale=1e-4*ones(size(Zmat,2)), γ=2.38; sync_every = 1000, prevrun=nothing, autostop=:Rhat, autostop_Rhat=1.1, verbose=true, workerpool = CachingPool(workers()))
     # prep storage etc
     nrowZ, d = size(Zmat)
     global Zshared = SharedArray(vcat(Zmat, zeros(Int(ceil(N*Ngeneration/K)), d)))
@@ -112,7 +112,7 @@ function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
         # start chain at last N elements of Z
         X = Zshared[M[1]-N+1:M[1], :]
         # initial obj values
-        log_objcurrent = pmap(logobj, [X[i,:] for i = 1:N])
+        log_objcurrent = pmap(logobj, workerpool, [X[i,:] for i = 1:N])
     else
         # start chain at last generation of prevrun
         X = prevrun.chain[:,:,end]
@@ -134,7 +134,7 @@ function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
         global from = set[1]
         global to = set[2]
         passobj(myid(), workers(), [:from, :to], from_mod=DEMC, to_mod=DEMC)
-        pmap(ic -> runchain!(ic, from, to, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks), 1:N)
+        pmap(ic -> runchain!(ic, from, to, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks), workerpool, 1:N)
         if verbose
             print_status(mc, to)
         end

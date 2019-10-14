@@ -1,5 +1,4 @@
-#using DEMC
-include("../src/DEMC.jl")
+using DEMC
 using Random
 using LinearAlgebra
 using Distributions
