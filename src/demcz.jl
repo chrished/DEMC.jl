@@ -33,7 +33,7 @@ function demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, bloc
         end
         if verbose
             if mod(ig, print_step) == 0.
-                print_status(mc, ig)
+                print_status(mc, ig;printlast=autostop_every)
             end
         end
         if autostop == :Rhat
@@ -62,11 +62,11 @@ function demcz_sample(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, bloc
     end
 end
 
-function print_status(mc, ig)
+function print_status(mc, ig;printlast=500)
     #bestval = maximum(mc.log_objcurrent)
     #bestpar = mc.Xcurrent[findfirst(bestval.==mc.log_objcurrent), :]
-    avgpar = mean(mc.chain[:,:,1:max(1,ig)], dims = [1,3])
-    avgval = mean(mc.log_obj[:,1:max(1,ig)], dims = [1,2])
+    avgpar = mean(mc.chain[:,:,max(1,ig-printlast):max(1,ig)], dims = [1,3])
+    avgval = mean(mc.log_obj[:,max(1,ig-printlast):max(1,ig)], dims = [1,2])
 
     println("-----------------------")
     println("iteration $ig")
@@ -136,7 +136,7 @@ function demcz_sample_par(logobj, Zmat, N=4, K=10, Ngeneration=5000, Nblocks=1, 
         passobj(myid(), workers(), [:from, :to], from_mod=DEMC, to_mod=DEMC)
         pmap(ic -> runchain!(ic, from, to, mc, Zshared, K, M, logobj, blockindex, eps_scale, γ, Nblocks), workerpool, 1:N)
         if verbose
-            print_status(mc, to)
+            print_status(mc, to; printlast=sync_every)
         end
         if autostop == :Rhat
             Rhat = Rhat_gelman(mc.chain[:,:, from:to], N, to-from, d)
